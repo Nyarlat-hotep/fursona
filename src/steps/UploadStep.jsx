@@ -49,6 +49,18 @@ export default function UploadStep({ project, dispatch }) {
         />
       </div>
       {error && <p className="error">{error}</p>}
+
+      <details className="tips">
+        <summary>📸 Tips for the best silhouette</summary>
+        <ul>
+          <li>Pick a photo with one clear subject — your pet, centered</li>
+          <li>A plain, uncluttered background works best (grass, wall, floor)</li>
+          <li>Good lighting helps — avoid backlit shots and deep shadows</li>
+          <li>The whole pet should be in frame, ideally not cropped at edges</li>
+          <li>Side or 3/4 profiles often look better than head-on shots</li>
+        </ul>
+      </details>
+
       {project.photoUrl && (
         <button className="primary" onClick={() => dispatch({ type: 'NEXT' })}>Continue</button>
       )}

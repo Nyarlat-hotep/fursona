@@ -50,6 +50,20 @@
   max-width: 360px;
 }
 
+.extract-step .progress-bar {
+  width: 240px;
+  height: 8px;
+  background: #ede8da;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.extract-step .progress-fill {
+  height: 100%;
+  background: #6a4a2c;
+  transition: width 0.2s ease;
+}
+
 .extract-step .error {
   color: #b04030;
   margin: 0;

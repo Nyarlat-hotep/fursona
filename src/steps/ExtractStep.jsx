@@ -6,6 +6,7 @@ import './ExtractStep.css'
 export default function ExtractStep({ project, dispatch }) {
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
+  const [progress, setProgress] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -18,9 +19,12 @@ export default function ExtractStep({ project, dispatch }) {
       return
     }
     setStatus('working')
+    setProgress(null)
     ;(async () => {
       try {
-        const cutoutBlob = await removeBackground(project.photoBlob)
+        const cutoutBlob = await removeBackground(project.photoBlob, (key, current, total) => {
+          if (!cancelled && total > 0) setProgress({ key, current, total })
+        })
         if (cancelled) return
         const bmp = await createImageBitmap(cutoutBlob)
         const c = document.createElement('canvas')
@@ -63,7 +67,16 @@ export default function ExtractStep({ project, dispatch }) {
             <span /><span /><span /><span />
           </div>
           <p className="loading-text">Finding your pet…</p>
-          <p className="loading-sub">First time? The model is downloading (~30 MB) — this is a one-time wait.</p>
+          {progress && progress.key === 'fetch' ? (
+            <>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${Math.min(100, (progress.current / progress.total) * 100)}%` }} />
+              </div>
+              <p className="loading-sub">Downloading model ({Math.round((progress.current / progress.total) * 100)}%) — one-time wait, then cached.</p>
+            </>
+          ) : (
+            <p className="loading-sub">First time? The model is downloading (~30 MB) — this is a one-time wait.</p>
+          )}
         </div>
       )}
       {status === 'error' && <p className="error">{error}</p>}

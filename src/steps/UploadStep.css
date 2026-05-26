@@ -63,3 +63,26 @@
 .upload-step .primary:hover {
   background: #563a22;
 }
+
+.upload-step .tips {
+  width: 100%;
+  background: #faf8f3;
+  border: 1px solid #e8e3d8;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.upload-step .tips summary {
+  cursor: pointer;
+  color: #6a4a2c;
+  font-weight: 600;
+  user-select: none;
+}
+
+.upload-step .tips ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: #5a5a5a;
+  line-height: 1.6;
+}
