@@ -2,6 +2,8 @@ import { useEffect, useReducer } from 'react'
 import { initialProject, projectReducer } from './state/projectStore'
 import { loadDraft, saveDraft } from './storage'
 import UploadStep from './steps/UploadStep'
+import ExtractStep from './steps/ExtractStep'
+import NamesStep from './steps/NamesStep'
 import './App.css'
 
 const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style', 'Download']
@@ -27,7 +29,9 @@ export default function App() {
           <p className="step-label">Step {project.step + 1} of {STEPS.length} — {STEPS[project.step]}</p>
           <div className="step-body">
             {project.step === 0 && <UploadStep project={project} dispatch={dispatch} />}
-            {project.step !== 0 && <span>[{STEPS[project.step]} goes here]</span>}
+            {project.step === 1 && <ExtractStep project={project} dispatch={dispatch} />}
+            {project.step === 2 && <NamesStep project={project} dispatch={dispatch} />}
+            {project.step > 2 && <span>[{STEPS[project.step]} goes here]</span>}
           </div>
           <div className="step-nav">
             <button onClick={() => dispatch({ type: 'BACK' })} disabled={project.step === 0}>Back</button>

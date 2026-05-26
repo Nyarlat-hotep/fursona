@@ -1,0 +1,82 @@
+.extract-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.extract-step .spinner {
+  color: #5a5a5a;
+  font-style: italic;
+}
+
+.extract-step .error {
+  color: #b04030;
+  margin: 0;
+}
+
+.extract-step .compare {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.extract-step .compare figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.extract-step .compare figcaption {
+  font-size: 12px;
+  color: #888;
+}
+
+.extract-step .thumb {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #e8e3d8;
+}
+
+.extract-step .thumb.checker {
+  background-image:
+    linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee),
+    linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.extract-step .actions {
+  display: flex;
+  gap: 12px;
+}
+
+.extract-step .actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #d0c8b8;
+  background: #f7f5f0;
+}
+
+.extract-step .actions .primary {
+  background: #6a4a2c;
+  color: #fff;
+  border-color: #6a4a2c;
+}
+
+.extract-step .actions .primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.extract-step .actions .primary:not(:disabled):hover {
+  background: #563a22;
+}
