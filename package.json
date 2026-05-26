@@ -11,9 +11,19 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource/abril-fatface": "^5.2.7",
+    "@fontsource/caveat": "^5.2.8",
+    "@fontsource/dancing-script": "^5.2.8",
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/nunito": "^5.2.7",
+    "@fontsource/playfair-display": "^5.2.8",
+    "@fontsource/roboto-slab": "^5.2.8",
+    "@fontsource/space-mono": "^5.2.9",
     "@imgly/background-removal": "^1.7.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "seedrandom": "^3.0.5",
+    "wordcloud": "^1.2.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
