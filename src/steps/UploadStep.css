@@ -1,0 +1,65 @@
+.upload-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.drop-zone {
+  width: 100%;
+  min-height: 320px;
+  border: 2px dashed #c8c0ad;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #faf8f3;
+  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.drop-zone.is-over {
+  border-color: #6a4a2c;
+  background: #f0ebde;
+}
+
+.drop-zone.has-photo {
+  padding: 12px;
+  border-style: solid;
+}
+
+.drop-zone .prompt {
+  text-align: center;
+  color: #5a5a5a;
+}
+
+.drop-zone .prompt .muted {
+  color: #9a9a9a;
+  margin-top: 4px;
+}
+
+.drop-zone .preview {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.upload-step .error {
+  color: #b04030;
+  margin: 0;
+}
+
+.upload-step .primary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 0;
+  background: #6a4a2c;
+  color: #fff;
+  font-weight: 600;
+}
+
+.upload-step .primary:hover {
+  background: #563a22;
+}

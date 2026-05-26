@@ -49,7 +49,8 @@
 .step-body {
   min-height: 240px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
   color: #999;
 }
