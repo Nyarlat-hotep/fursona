@@ -57,7 +57,15 @@ export default function ExtractStep({ project, dispatch }) {
 
   return (
     <div className="extract-step">
-      {status === 'working' && <p className="spinner">Finding your pet…</p>}
+      {status === 'working' && (
+        <div className="loading">
+          <div className="paw-loader">
+            <span /><span /><span /><span />
+          </div>
+          <p className="loading-text">Finding your pet…</p>
+          <p className="loading-sub">First time? The model is downloading (~30 MB) — this is a one-time wait.</p>
+        </div>
+      )}
       {status === 'error' && <p className="error">{error}</p>}
       {status === 'done' && project.maskBitmap && (
         <div className="compare">
