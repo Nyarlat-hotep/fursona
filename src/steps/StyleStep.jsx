@@ -91,7 +91,7 @@ export default function StyleStep({ project, dispatch }) {
       </aside>
 
       <section className="preview">
-        <WordCloudCanvas project={project} width={520} />
+        <WordCloudCanvas project={project} width={580} />
       </section>
     </div>
   )

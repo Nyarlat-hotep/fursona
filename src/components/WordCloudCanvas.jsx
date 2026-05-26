@@ -9,14 +9,18 @@ export default function WordCloudCanvas({ project, width }) {
   useEffect(() => {
     if (!project.maskBitmap || project.names.length === 0) return
     const { mask, width: mw, height: mh } = project.maskBitmap
-    const scale = width / mw
-    const w = Math.round(mw * scale)
-    const h = Math.round(mh * scale)
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const cssW = width
+    const cssH = Math.round((width * mh) / mw)
+    const renderW = Math.round(cssW * dpr)
+    const renderH = Math.round(cssH * dpr)
 
     const canvas = canvasRef.current
     if (!canvas) return
-    canvas.width = w
-    canvas.height = h
+    canvas.width = renderW
+    canvas.height = renderH
+    canvas.style.width = cssW + 'px'
+    canvas.style.height = cssH + 'px'
 
     let cancelled = false
     renderWordCloudToCanvas({

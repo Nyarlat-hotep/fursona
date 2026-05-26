@@ -46,8 +46,8 @@ export async function renderWordCloudToCanvas({
     const done = () => { if (!finished) { finished = true; resolve() } }
     WordCloud(canvas, {
       list,
-      gridSize: Math.max(3, Math.round(4 * (w / 600))),
-      weightFactor: (size) => size * (w / 22),
+      gridSize: Math.max(4, Math.round(5 * (w / 600))),
+      weightFactor: (size) => size * (w / 16),
       fontFamily: (word) => byText.get(word)?.fontFamily || 'sans-serif',
       fontWeight: (word) => String(byText.get(word)?.fontWeight || 400),
       color: (word) => byText.get(word)?.color || '#000',
