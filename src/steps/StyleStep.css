@@ -1,0 +1,154 @@
+.style-step {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  width: 100%;
+  align-items: start;
+}
+
+.style-step .controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.style-step fieldset {
+  border: 1px solid #e8e3d8;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0;
+}
+
+.style-step legend {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  padding: 0 6px;
+}
+
+.style-step .bg-type {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.style-step .bg-type label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.style-step .color-input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #d0c8b8;
+  border-radius: 6px;
+  padding: 2px;
+  background: #fff;
+}
+
+.style-step .pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.style-step .pattern-tile {
+  aspect-ratio: 1;
+  border: 1px solid #d0c8b8;
+  border-radius: 4px;
+  padding: 0;
+  overflow: hidden;
+  background: #f7f5f0;
+  cursor: pointer;
+}
+
+.style-step .pattern-tile.selected {
+  border-color: #6a4a2c;
+  border-width: 2px;
+}
+
+.style-step .pattern-tile img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.style-step .palette-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.style-step .palette-name {
+  flex: 0 0 64px;
+}
+
+.style-step .swatches {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.style-step .swatches i {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.style-step .regenerate {
+  padding: 10px 16px;
+  background: #f0ebde;
+  border: 1px solid #d0c8b8;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.style-step .regenerate:hover {
+  background: #e3dcc6;
+}
+
+.style-step .actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.style-step .actions button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d0c8b8;
+  background: #f7f5f0;
+}
+
+.style-step .actions .primary {
+  background: #6a4a2c;
+  color: #fff;
+  border-color: #6a4a2c;
+}
+
+.style-step .actions .primary:hover {
+  background: #563a22;
+}
+
+.style-step .preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #faf8f3;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 400px;
+}
+
+@media (max-width: 720px) {
+  .style-step {
+    grid-template-columns: 1fr;
+  }
+}
