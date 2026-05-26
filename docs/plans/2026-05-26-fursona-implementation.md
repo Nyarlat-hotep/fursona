@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Build and ship a browser-only pet-nickname word-cloud generator at `https://tcorneliusart.github.io/fursona/`.
+**Goal:** Build and ship a browser-only pet-nickname word-cloud generator at `https://Nyarlat-hotep.github.io/fursona/`.
 
 **Architecture:** React + Vite SPA, single-page with a step-index reducer (no router). All processing client-side: `@imgly/background-removal` extracts a silhouette mask, `wordcloud2.js` packs random-sized words across a curated font set into that mask, canvas exports a 300-DPI PNG. Deploys via GitHub Actions to `gh-pages`.
 
@@ -98,7 +98,7 @@ gh repo create fursona --public --source=. --remote=origin --description "Pet-ni
 git push -u origin main
 ```
 
-Expected: repo lives at `https://github.com/tcorneliusart/fursona`.
+Expected: repo lives at `https://github.com/Nyarlat-hotep/fursona`.
 
 ---
 
@@ -163,13 +163,13 @@ gh run watch
 Expected: green run. After it finishes, enable Pages in repo settings (source: `gh-pages` branch, `/ (root)`).
 
 ```bash
-gh api repos/tcorneliusart/fursona/pages -X POST -f source[branch]=gh-pages -f source[path]=/ 2>/dev/null || \
+gh api repos/Nyarlat-hotep/fursona/pages -X POST -f source[branch]=gh-pages -f source[path]=/ 2>/dev/null || \
   echo "If the API call failed (Pages already enabled or perms), set source manually in GitHub UI."
 ```
 
 **Step 5:** Verify the URL loads the default Vite app.
 
-Open `https://tcorneliusart.github.io/fursona/` in a browser. Confirm the React+Vite default page renders. If 404, wait 1-2 min and retry. **STOP and debug** if it doesn't come up — do not proceed until live.
+Open `https://Nyarlat-hotep.github.io/fursona/` in a browser. Confirm the React+Vite default page renders. If 404, wait 1-2 min and retry. **STOP and debug** if it doesn't come up — do not proceed until live.
 
 ---
 
@@ -1603,17 +1603,17 @@ git push
 gh run watch
 ```
 
-**Step 3:** Open `https://tcorneliusart.github.io/fursona/` and run the smoke test on the live site. Expect the first model load to take longer than dev (cold cache).
+**Step 3:** Open `https://Nyarlat-hotep.github.io/fursona/` and run the smoke test on the live site. Expect the first model load to take longer than dev (cold cache).
 
 **Step 4:** If broken on production but works in `npm run preview`:
 - Confirm `base: '/fursona/'` in `vite.config.js`.
 - Confirm pattern paths use `import.meta.env.BASE_URL`.
-- Confirm GH Actions is publishing to `gh-pages` (`gh api repos/tcorneliusart/fursona/branches`).
+- Confirm GH Actions is publishing to `gh-pages` (`gh api repos/Nyarlat-hotep/fursona/branches`).
 
 **Step 5:** Update repo description with the live URL.
 
 ```bash
-gh repo edit tcorneliusart/fursona --homepage "https://tcorneliusart.github.io/fursona/"
+gh repo edit Nyarlat-hotep/fursona --homepage "https://Nyarlat-hotep.github.io/fursona/"
 ```
 
 **Step 6:** Done. Tag the release.
@@ -1626,7 +1626,7 @@ git tag v0.1.0 && git push --tags
 
 ## Done criteria
 
-- Live at `https://tcorneliusart.github.io/fursona/`
+- Live at `https://Nyarlat-hotep.github.io/fursona/`
 - Upload → extract → name → style → download flow works end-to-end on Chrome + Safari + Firefox
 - Generated PNG opens and looks like a pet-shaped word cloud
 - `npm test` is green

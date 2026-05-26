@@ -4,7 +4,7 @@
 **Status:** Approved, ready for implementation planning
 **Project dir:** `/Users/taylorcornelius/Desktop/fursona`
 **Repo:** `fursona` (to be created on GitHub)
-**Public URL:** `https://tcorneliusart.github.io/fursona/`
+**Public URL:** `https://Nyarlat-hotep.github.io/fursona/`
 
 ---
 
