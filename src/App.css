@@ -25,3 +25,53 @@
   justify-content: center;
   padding: 24px;
 }
+
+.step-card {
+  width: 100%;
+  max-width: 720px;
+  background: #fff;
+  border: 1px solid #e8e3d8;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step-label {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+}
+
+.step-body {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.step-nav button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #d0c8b8;
+  background: #f7f5f0;
+}
+
+.step-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.step-nav button:not(:disabled):hover {
+  background: #ede8da;
+}
