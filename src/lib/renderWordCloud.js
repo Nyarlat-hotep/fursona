@@ -16,13 +16,11 @@ export async function renderWordCloudToCanvas({
   const h = canvas.height
   const ctx = canvas.getContext('2d')
 
-  // Scale obstacle canvas to target size
-  const obstacleSrc = buildWordCloudMaskCanvas(mask, maskWidth, maskHeight)
-  const obstacle = document.createElement('canvas')
-  obstacle.width = w
-  obstacle.height = h
-  obstacle.getContext('2d').drawImage(obstacleSrc, 0, 0, w, h)
-
+  // Scale mask to render dims with nearest-neighbor (no edge smoothing), then
+  // build the obstacle canvas at the final size. Smoothing during scale would
+  // produce semi-transparent edges that wordcloud2 treats as obstacles.
+  const scaledMaskInline = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
+  const obstacle = buildWordCloudMaskCanvas(scaledMaskInline, w, h)
   ctx.clearRect(0, 0, w, h)
   ctx.drawImage(obstacle, 0, 0)
 
@@ -30,39 +28,43 @@ export async function renderWordCloudToCanvas({
     await document.fonts.ready
   }
 
-  // Unique-word styles. Names repeat in the wordcloud2 list at varying
-  // weights to achieve "medium fill" without per-occurrence styling
-  // (which wordcloud2 doesn't natively support).
-  const uniqueAssigned = assignWords(names, seed, FONTS, palette)
-  const byText = new Map(uniqueAssigned.map((a) => [a.text, a]))
-
-  // Generate a packing list: each name once at its assigned tier weight,
-  // then 3 fill passes at smaller weights to densify.
-  const fillAssigned = assignWords(names, seed + 1, FONTS, palette, { fillPasses: 3 })
-  const list = fillAssigned.map((a) => [a.text, a.weight])
+  // Build list of word occurrences. wordcloud2 dedupes by text string, so each
+  // repeated occurrence gets a varying number of zero-width spaces appended to
+  // make it textually unique while remaining visually identical.
+  const ZWSP = '​'
+  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 4 })
+  const styles = new Map()
+  const list = occurrences.map((a, i) => {
+    const uniqueText = a.text + ZWSP.repeat(i + 1)
+    styles.set(uniqueText, a)
+    return [uniqueText, a.weight]
+  })
+  // wordcloud2 places list in given order, so put largest first for visual hierarchy
+  list.sort((a, b) => b[1] - a[1])
 
   await new Promise((resolve) => {
-    let finished = false
-    const done = () => { if (!finished) { finished = true; resolve() } }
     WordCloud(canvas, {
       list,
-      gridSize: Math.max(4, Math.round(5 * (w / 600))),
-      weightFactor: (size) => size * (w / 16),
-      fontFamily: (word) => byText.get(word)?.fontFamily || 'sans-serif',
-      fontWeight: (word) => String(byText.get(word)?.fontWeight || 400),
-      color: (word) => byText.get(word)?.color || '#000',
+      gridSize: Math.max(4, Math.round(6 * (w / 600))),
+      weightFactor: (size) => size * (w / 14),
+      fontFamily: (word) => styles.get(word)?.fontFamily || 'sans-serif',
+      fontWeight: (word) => String(styles.get(word)?.fontWeight || 400),
+      color: (word) => styles.get(word)?.color || '#000',
       rotateRatio: 0.3,
       rotationSteps: 2,
       minRotation: 0,
       maxRotation: Math.PI / 2,
-      shrinkToFit: true,
+      shrinkToFit: false,
       drawOutOfBound: false,
       clearCanvas: false,
       backgroundColor: 'transparent',
       hover: null,
       click: null,
+      // strip zero-width spaces before measuring/drawing so they don't affect width
+      shape: 'square',
     })
-    requestAnimationFrame(done)
+    // wordcloud2's draw is synchronous in this configuration; defer one frame
+    requestAnimationFrame(resolve)
   })
 
   // Build output canvas with background + faint silhouette tint + words
@@ -87,7 +89,7 @@ export async function renderWordCloudToCanvas({
 
   // 2. Faint silhouette tint underneath words — gives the pet shape
   // a visible "ghost" outline so it reads even when words are sparse.
-  const silMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
+  const silMask = scaledMaskInline
   const tintColor = palette.colors[0] || '#1a1a1a'
   octx.save()
   octx.fillStyle = withAlpha(tintColor, 0.08)
