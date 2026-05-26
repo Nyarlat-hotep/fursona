@@ -26,7 +26,7 @@ export async function renderWordCloudToCanvas({
   const scaledMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
 
   // Word occurrences with assigned styles + size tier multipliers
-  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 8 })
+  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 14 })
   // Convert weight multipliers into actual font sizes (canvas px)
   const baseFontUnit = w / 26
   const words = occurrences.map((a) => ({
@@ -113,9 +113,9 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
     let foundCy = null
     const halfW = boxW / 2
     const halfH = boxH / 2
-    const padding = 2
+    const padding = 1
 
-    const maxAttempts = 500
+    const maxAttempts = 800
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const cx = halfW + rng() * (maskW - boxW)
       const cy = halfH + rng() * (maskH - boxH)

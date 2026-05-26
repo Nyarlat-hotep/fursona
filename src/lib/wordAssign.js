@@ -9,9 +9,10 @@ const SIZE_TIERS = [
 ]
 
 const FILL_TIERS = [
-  { label: 'small', weight: 30, multiplier: 0.8 },
-  { label: 'tiny',  weight: 45, multiplier: 0.5 },
-  { label: 'micro', weight: 25, multiplier: 0.35 },
+  { label: 'small', weight: 18, multiplier: 0.75 },
+  { label: 'tiny',  weight: 32, multiplier: 0.5 },
+  { label: 'micro', weight: 30, multiplier: 0.35 },
+  { label: 'nano',  weight: 20, multiplier: 0.25 },
 ]
 
 const ROT_TIERS = [
