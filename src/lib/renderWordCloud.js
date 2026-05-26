@@ -6,19 +6,8 @@ import { FONTS } from '../styles/fonts'
 /**
  * Render a word cloud into the given canvas. The pet silhouette mask is used
  * as an obstacle layer so wordcloud2 packs words only inside the silhouette.
- * After packing, we clip the result to the silhouette and paint the background
- * underneath.
- *
- * @param {object} args
- * @param {HTMLCanvasElement} args.canvas    Target canvas (sized by caller)
- * @param {Uint8Array}        args.mask      1=silhouette pixel, 0=background
- * @param {number}            args.maskWidth Width of the cropped mask
- * @param {number}            args.maskHeight Height of the cropped mask
- * @param {string[]}          args.names     Nicknames
- * @param {number}            args.seed      RNG seed
- * @param {object}            args.style     { backgroundType, backgroundValue }
- * @param {object}            args.palette   { colors: string[] }
- * @returns {Promise<void>}
+ * After packing, we composite a background underneath plus an optional faint
+ * silhouette tint so the pet shape is always visible.
  */
 export async function renderWordCloudToCanvas({
   canvas, mask, maskWidth, maskHeight, names, seed, style, palette,
@@ -34,24 +23,31 @@ export async function renderWordCloudToCanvas({
   obstacle.height = h
   obstacle.getContext('2d').drawImage(obstacleSrc, 0, 0, w, h)
 
-  // Paint obstacle layer into target so wordcloud2 sees obstacles
   ctx.clearRect(0, 0, w, h)
   ctx.drawImage(obstacle, 0, 0)
 
-  // Wait for fonts so canvas measureText is correct
   if (document.fonts && document.fonts.ready) {
     await document.fonts.ready
   }
 
-  const assigned = assignWords(names, seed, FONTS, palette)
-  const list = assigned.map((a) => [a.text, a.weight])
-  const byText = new Map(assigned.map((a) => [a.text, a]))
+  // Unique-word styles. Names repeat in the wordcloud2 list at varying
+  // weights to achieve "medium fill" without per-occurrence styling
+  // (which wordcloud2 doesn't natively support).
+  const uniqueAssigned = assignWords(names, seed, FONTS, palette)
+  const byText = new Map(uniqueAssigned.map((a) => [a.text, a]))
+
+  // Generate a packing list: each name once at its assigned tier weight,
+  // then 3 fill passes at smaller weights to densify.
+  const fillAssigned = assignWords(names, seed + 1, FONTS, palette, { fillPasses: 3 })
+  const list = fillAssigned.map((a) => [a.text, a.weight])
 
   await new Promise((resolve) => {
+    let finished = false
+    const done = () => { if (!finished) { finished = true; resolve() } }
     WordCloud(canvas, {
       list,
-      gridSize: Math.max(4, Math.round(6 * (w / 600))),
-      weightFactor: (size) => size * (w / 30),
+      gridSize: Math.max(3, Math.round(4 * (w / 600))),
+      weightFactor: (size) => size * (w / 22),
       fontFamily: (word) => byText.get(word)?.fontFamily || 'sans-serif',
       fontWeight: (word) => String(byText.get(word)?.fontWeight || 400),
       color: (word) => byText.get(word)?.color || '#000',
@@ -66,21 +62,10 @@ export async function renderWordCloudToCanvas({
       hover: null,
       click: null,
     })
-    // wordcloud2 is synchronous when invoked this way
-    requestAnimationFrame(resolve)
+    requestAnimationFrame(done)
   })
 
-  // Now `canvas` contains: opaque-white obstacle outside silhouette,
-  // packed-word pixels inside, transparent where no words placed.
-  // We want: background (solid color or pattern) outside silhouette boundary
-  // PLUS inside the silhouette wherever words weren't placed.
-  //
-  // Strategy: build a composite to a working canvas:
-  //   1. paint background full-bleed
-  //   2. clip to silhouette
-  //   3. inside silhouette, paint the word pixels (extracted from current canvas)
-  //   4. copy result back
-
+  // Build output canvas with background + faint silhouette tint + words
   const out = document.createElement('canvas')
   out.width = w
   out.height = h
@@ -100,36 +85,47 @@ export async function renderWordCloudToCanvas({
   }
   octx.fillRect(0, 0, w, h)
 
-  // 2. Extract just the word pixels from current canvas:
-  //    Current canvas: opaque-white outside silhouette + colored words inside.
-  //    Remove the white obstacle so we keep only the word strokes.
+  // 2. Faint silhouette tint underneath words — gives the pet shape
+  // a visible "ghost" outline so it reads even when words are sparse.
+  const silMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
+  const tintColor = palette.colors[0] || '#1a1a1a'
+  octx.save()
+  octx.fillStyle = withAlpha(tintColor, 0.08)
+  for (let y = 0; y < h; y++) {
+    let runStart = -1
+    for (let x = 0; x < w; x++) {
+      const m = silMask[y * w + x]
+      if (m && runStart === -1) runStart = x
+      else if (!m && runStart !== -1) {
+        octx.fillRect(runStart, y, x - runStart, 1)
+        runStart = -1
+      }
+    }
+    if (runStart !== -1) octx.fillRect(runStart, y, w - runStart, 1)
+  }
+  octx.restore()
+
+  // 3. Extract word pixels (drop obstacle-white and anything outside silhouette)
   const cloudImage = ctx.getImageData(0, 0, w, h)
   const cloudData = cloudImage.data
-  // Build a silhouette mask scaled to target size
-  const silMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4
       const m = silMask[y * w + x]
       if (!m) {
-        // Outside silhouette: make transparent (will show background)
         cloudData[i + 3] = 0
-      } else {
-        // Inside silhouette: if pixel is opaque-white obstacle (255,255,255,255), drop it
-        if (cloudData[i] === 255 && cloudData[i + 1] === 255 && cloudData[i + 2] === 255 && cloudData[i + 3] === 255) {
-          cloudData[i + 3] = 0
-        }
+      } else if (cloudData[i] === 255 && cloudData[i + 1] === 255 && cloudData[i + 2] === 255 && cloudData[i + 3] === 255) {
+        cloudData[i + 3] = 0
       }
     }
   }
-  // Put cleaned cloud onto out canvas on top of background
   const cleanCloud = document.createElement('canvas')
   cleanCloud.width = w
   cleanCloud.height = h
   cleanCloud.getContext('2d').putImageData(cloudImage, 0, 0)
   octx.drawImage(cleanCloud, 0, 0)
 
-  // Copy back to original target canvas
+  // Copy back to target
   ctx.clearRect(0, 0, w, h)
   ctx.drawImage(out, 0, 0)
 }
@@ -149,7 +145,6 @@ async function loadPattern(src) {
 }
 
 function scaleMaskToCanvas(mask, mw, mh, tw, th) {
-  // Nearest-neighbor scale of binary mask to target canvas dims
   const out = new Uint8Array(tw * th)
   for (let y = 0; y < th; y++) {
     const sy = Math.min(mh - 1, Math.floor((y * mh) / th))
@@ -159,4 +154,22 @@ function scaleMaskToCanvas(mask, mw, mh, tw, th) {
     }
   }
   return out
+}
+
+function withAlpha(color, alpha) {
+  // Accept #rgb, #rrggbb, or rgb()/rgba() — return rgba(...)
+  if (color.startsWith('#')) {
+    let r, g, b
+    if (color.length === 4) {
+      r = parseInt(color[1] + color[1], 16)
+      g = parseInt(color[2] + color[2], 16)
+      b = parseInt(color[3] + color[3], 16)
+    } else {
+      r = parseInt(color.slice(1, 3), 16)
+      g = parseInt(color.slice(3, 5), 16)
+      b = parseInt(color.slice(5, 7), 16)
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  return color
 }
