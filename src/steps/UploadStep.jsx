@@ -1,10 +1,13 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { prefetchModel } from '../lib/backgroundRemoval'
 import './UploadStep.css'
 
 export default function UploadStep({ project, dispatch }) {
   const inputRef = useRef(null)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState(null)
+
+  useEffect(() => { prefetchModel() }, [])
 
   function handleFile(file) {
     if (!file) return
