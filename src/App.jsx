@@ -12,6 +12,26 @@ const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style', 'Download']
 
 function UserMenu() { return null }
 
+function HeaderActions({ project, dispatch }) {
+  if (project.step === 0 && !project.photoUrl) return <UserMenu />
+  return (
+    <div className="header-actions">
+      <button
+        className="start-over"
+        onClick={() => {
+          if (confirm('Start over from scratch? Your current pet, names, and style will be cleared.')) {
+            dispatch({ type: 'RESET' })
+          }
+        }}
+        type="button"
+      >
+        ↺ Start over
+      </button>
+      <UserMenu />
+    </div>
+  )
+}
+
 export default function App() {
   const [project, dispatch] = useReducer(projectReducer, initialProject, (init) => {
     const draft = loadDraft()
@@ -24,7 +44,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <h1 className="brand">fursona</h1>
-        <UserMenu />
+        <HeaderActions project={project} dispatch={dispatch} />
       </header>
       <main className="app-main">
         <div className="step-card">

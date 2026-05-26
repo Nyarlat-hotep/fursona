@@ -28,25 +28,25 @@ export async function renderWordCloudToCanvas({
     await document.fonts.ready
   }
 
-  // Build list of word occurrences. wordcloud2 dedupes by text string, so each
-  // repeated occurrence gets a varying number of zero-width spaces appended to
-  // make it textually unique while remaining visually identical.
+  // wordcloud2 dedupes list entries by text string, so each occurrence gets a
+  // varying number of zero-width spaces (U+200B) appended — invisible but
+  // textually distinct, so every occurrence is placed separately.
   const ZWSP = '​'
-  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 4 })
+  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 6 })
   const styles = new Map()
   const list = occurrences.map((a, i) => {
     const uniqueText = a.text + ZWSP.repeat(i + 1)
     styles.set(uniqueText, a)
     return [uniqueText, a.weight]
   })
-  // wordcloud2 places list in given order, so put largest first for visual hierarchy
+  // Largest first so big words anchor before fill words crowd in
   list.sort((a, b) => b[1] - a[1])
 
   await new Promise((resolve) => {
     WordCloud(canvas, {
       list,
-      gridSize: Math.max(4, Math.round(6 * (w / 600))),
-      weightFactor: (size) => size * (w / 14),
+      gridSize: Math.max(4, Math.round(8 * (w / 600))),
+      weightFactor: (size) => size * (w / 24),
       fontFamily: (word) => styles.get(word)?.fontFamily || 'sans-serif',
       fontWeight: (word) => String(styles.get(word)?.fontWeight || 400),
       color: (word) => styles.get(word)?.color || '#000',
@@ -54,16 +54,15 @@ export async function renderWordCloudToCanvas({
       rotationSteps: 2,
       minRotation: 0,
       maxRotation: Math.PI / 2,
-      shrinkToFit: false,
+      // Allow shrinking so xlarge words still place inside the silhouette
+      // instead of being silently dropped.
+      shrinkToFit: true,
       drawOutOfBound: false,
       clearCanvas: false,
       backgroundColor: 'transparent',
       hover: null,
       click: null,
-      // strip zero-width spaces before measuring/drawing so they don't affect width
-      shape: 'square',
     })
-    // wordcloud2's draw is synchronous in this configuration; defer one frame
     requestAnimationFrame(resolve)
   })
 

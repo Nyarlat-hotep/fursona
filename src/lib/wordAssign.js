@@ -1,22 +1,22 @@
 import { makeRng, pick, weightedTier } from './rng'
 
 const SIZE_TIERS = [
-  { label: 'mega',   weight: 5,  multiplier: 5.5 },
-  { label: 'hero',   weight: 15, multiplier: 3.3 },
-  { label: 'medium', weight: 25, multiplier: 2.0 },
-  { label: 'small',  weight: 35, multiplier: 1.2 },
-  { label: 'tiny',   weight: 20, multiplier: 0.7 },
+  { label: 'xlarge', weight: 4,  multiplier: 4.0 },
+  { label: 'large',  weight: 12, multiplier: 2.5 },
+  { label: 'medium', weight: 24, multiplier: 1.5 },
+  { label: 'small',  weight: 40, multiplier: 0.9 },
+  { label: 'tiny',   weight: 20, multiplier: 0.55 },
 ]
 
 const FILL_TIERS = [
-  { label: 'small', weight: 35, multiplier: 1.1 },
-  { label: 'tiny',  weight: 45, multiplier: 0.7 },
-  { label: 'micro', weight: 20, multiplier: 0.45 },
+  { label: 'small', weight: 30, multiplier: 0.8 },
+  { label: 'tiny',  weight: 45, multiplier: 0.5 },
+  { label: 'micro', weight: 25, multiplier: 0.35 },
 ]
 
 const ROT_TIERS = [
-  { label: 0,  weight: 70 },
-  { label: 90, weight: 25 },
+  { label: 0,  weight: 75 },
+  { label: 90, weight: 20 },
   { label: 45, weight: 5 },
 ]
 

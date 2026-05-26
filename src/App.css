@@ -18,6 +18,26 @@
   letter-spacing: 0.02em;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.start-over {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0c8b8;
+  background: #fff;
+  color: #6a4a2c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.start-over:hover {
+  background: #f0ebde;
+}
+
 .app-main {
   flex: 1;
   display: flex;
