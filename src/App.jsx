@@ -5,6 +5,7 @@ import UploadStep from './steps/UploadStep'
 import ExtractStep from './steps/ExtractStep'
 import NamesStep from './steps/NamesStep'
 import StyleStep from './steps/StyleStep'
+import DownloadStep from './steps/DownloadStep'
 import './App.css'
 
 const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style', 'Download']
@@ -33,11 +34,7 @@ export default function App() {
             {project.step === 1 && <ExtractStep project={project} dispatch={dispatch} />}
             {project.step === 2 && <NamesStep project={project} dispatch={dispatch} />}
             {project.step === 3 && <StyleStep project={project} dispatch={dispatch} />}
-            {project.step > 3 && <span>[{STEPS[project.step]} goes here]</span>}
-          </div>
-          <div className="step-nav">
-            <button onClick={() => dispatch({ type: 'BACK' })} disabled={project.step === 0}>Back</button>
-            <button onClick={() => dispatch({ type: 'NEXT' })} disabled={project.step === STEPS.length - 1}>Next</button>
+            {project.step === 4 && <DownloadStep project={project} dispatch={dispatch} />}
           </div>
         </div>
       </main>

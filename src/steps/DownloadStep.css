@@ -1,0 +1,81 @@
+.download-step {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.download-step .lead {
+  margin: 0;
+  color: #5a5a5a;
+  text-align: center;
+}
+
+.download-step .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.download-step .field .label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.download-step select {
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #d0c8b8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.download-step .primary.big {
+  padding: 14px 24px;
+  background: #6a4a2c;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.download-step .primary.big:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.download-step .primary.big:not(:disabled):hover {
+  background: #563a22;
+}
+
+.download-step .error {
+  color: #b04030;
+  margin: 0;
+  font-size: 14px;
+}
+
+.download-step .actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.download-step .actions button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d0c8b8;
+  background: #f7f5f0;
+}
+
+.download-step .actions .link {
+  background: transparent;
+  border: 0;
+  color: #6a4a2c;
+  text-decoration: underline;
+}
