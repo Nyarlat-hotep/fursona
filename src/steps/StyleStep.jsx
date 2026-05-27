@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowsClockwise, ArrowLeft } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowsClockwise, ArrowLeft, CaretDown, Check } from '@phosphor-icons/react'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
@@ -7,6 +7,59 @@ import { exportPng, listExportSizes } from '../lib/export'
 import './StyleStep.css'
 
 const EXPORT_SIZES = listExportSizes()
+
+function SizeDropdown({ value, onChange, options, disabled }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDocMouseDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocMouseDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className={`size-dropdown ${open ? 'is-open' : ''}`} ref={ref}>
+      <button
+        type="button"
+        className="size-trigger"
+        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{value} in @ 300 DPI</span>
+        <CaretDown size={14} weight="bold" className="size-caret" />
+      </button>
+      <ul className="size-menu" role="listbox">
+        {options.map((s) => (
+          <li key={s}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={s === value}
+              className={`size-option ${s === value ? 'is-selected' : ''}`}
+              onClick={() => { onChange(s); setOpen(false) }}
+            >
+              <span>{s} in @ 300 DPI</span>
+              {s === value && <Check size={14} weight="bold" />}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
 function AlignIcon({ axis, pos }) {
   // 18×18 viewbox: outer rounded square, inner filled rect positioned per axis+pos
@@ -92,6 +145,7 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
 export default function StyleStep({ project, dispatch }) {
   const setStyle = (patch) => dispatch({ type: 'SET_STYLE', patch })
   const { backgroundType, backgroundValue, paletteId } = project.style
+  const silhouetteMode = project.style.silhouetteMode === 'none' ? 'none' : 'tint'
 
   const [size, setSize] = useState('8x10')
   const [busy, setBusy] = useState(false)
@@ -152,20 +206,69 @@ export default function StyleStep({ project, dispatch }) {
           )}
 
           {backgroundType === 'pattern' && (
-            <div className="pattern-grid">
-              {PATTERNS.map((p) => (
-                <button
-                  key={p.id}
-                  className={`pattern-tile ${backgroundValue === p.url ? 'selected' : ''}`}
-                  onClick={() => setStyle({ backgroundValue: p.url })}
-                  title={p.label}
-                  type="button"
-                >
-                  <img src={p.url} alt={p.label} />
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="pattern-grid">
+                {PATTERNS.map((p) => (
+                  <button
+                    key={p.id}
+                    className={`pattern-tile ${backgroundValue === p.url ? 'selected' : ''}`}
+                    onClick={() => setStyle({ backgroundValue: p.url })}
+                    title={p.label}
+                    type="button"
+                  >
+                    <img src={p.url} alt={p.label} />
+                  </button>
+                ))}
+              </div>
+              <label className="pattern-scale">
+                <span className="pattern-scale-label">
+                  <span>Pattern scale</span>
+                  <span className="pattern-scale-value">{(project.style.patternScale ?? 1).toFixed(2)}×</span>
+                </span>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="4"
+                  step="0.25"
+                  value={project.style.patternScale ?? 1}
+                  onChange={(e) => setStyle({ patternScale: parseFloat(e.target.value) })}
+                />
+              </label>
+              <label className="pattern-scale">
+                <span className="pattern-scale-label">
+                  <span>Pattern opacity</span>
+                  <span className="pattern-scale-value">{Math.round((project.style.patternOpacity ?? 1) * 100)}%</span>
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={project.style.patternOpacity ?? 1}
+                  onChange={(e) => setStyle({ patternOpacity: parseFloat(e.target.value) })}
+                />
+              </label>
+            </>
           )}
+        </fieldset>
+
+        <fieldset>
+          <legend>Silhouette</legend>
+          <div className="silhouette-modes">
+            {[
+              { id: 'tint', label: 'Tinted fill' },
+              { id: 'none', label: 'None' },
+            ].map((m) => (
+              <label key={m.id} className="silhouette-mode">
+                <input
+                  type="radio"
+                  checked={silhouetteMode === m.id}
+                  onChange={() => setStyle({ silhouetteMode: m.id })}
+                />
+                <span>{m.label}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
 
         <fieldset>
@@ -206,17 +309,12 @@ export default function StyleStep({ project, dispatch }) {
 
         <fieldset className="download-fieldset">
           <legend>Print size</legend>
-          <label className="size-field">
-            <select
-              value={size}
-              onChange={(e) => setSize(e.target.value)}
-              disabled={busy}
-            >
-              {EXPORT_SIZES.map((s) => (
-                <option key={s} value={s}>{s} in @ 300 DPI</option>
-              ))}
-            </select>
-          </label>
+          <SizeDropdown
+            value={size}
+            onChange={setSize}
+            options={EXPORT_SIZES}
+            disabled={busy}
+          />
           {error && <p className="download-error">{error}</p>}
         </fieldset>
         </aside>

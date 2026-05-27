@@ -7,10 +7,13 @@ export const initialProject = {
   style: {
     backgroundType: 'color',
     backgroundValue: '#f7f5f0',
+    patternScale: 1,
+    patternOpacity: 1,
     paletteId: 'mono',
     customPaletteColors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'],
-    alignH: 'center',  // 'left' | 'center' | 'right'
-    alignV: 'middle',  // 'top'  | 'middle' | 'bottom'
+    alignH: 'center',     // 'left' | 'center' | 'right'
+    alignV: 'middle',     // 'top'  | 'middle' | 'bottom'
+    silhouetteMode: 'tint', // 'tint' | 'none'
   },
   seed: 1,
   lastExportedAt: null,
@@ -25,6 +28,7 @@ export function projectReducer(state, action) {
     case 'GOTO': return { ...state, step: Math.max(0, Math.min(action.step, MAX_STEP)) }
     case 'SET_PHOTO': return { ...state, photoBlob: action.blob, photoUrl: action.url }
     case 'SET_MASK': return { ...state, maskBitmap: action.bitmap }
+    case 'SET_SHAPE': return { ...state, photoBlob: null, photoUrl: null, maskBitmap: action.bitmap }
     case 'ADD_NAME': {
       const text = String(action.text || '').trim()
       if (!text) return state

@@ -20,8 +20,9 @@ export async function renderWordCloudToCanvas({
 
   await ensureFontsLoaded()
 
-  // Fit silhouette into canvas preserving aspect, with a small safe margin,
-  // then offset to the alignment chosen in style (alignH / alignV).
+  // Fit silhouette into canvas preserving aspect, with a small safe margin.
+  // Word packing always runs against a *centered* silhouette so alignment
+  // just translates the result instead of re-rolling the layout.
   const padding = 0.04
   const padX = w * padding
   const padY = h * padding
@@ -30,26 +31,30 @@ export async function renderWordCloudToCanvas({
   const scaleFit = Math.min(availW / maskWidth, availH / maskHeight)
   const silW = maskWidth * scaleFit
   const silH = maskHeight * scaleFit
+
+  const centeredSilX = Math.round((w - silW) / 2)
+  const centeredSilY = Math.round((h - silH) / 2)
+
   const alignH = style.alignH || 'center'
   const alignV = style.alignV || 'middle'
-  let silX, silY
-  if (alignH === 'left') silX = padX
-  else if (alignH === 'right') silX = w - silW - padX
-  else silX = (w - silW) / 2
-  if (alignV === 'top') silY = padY
-  else if (alignV === 'bottom') silY = h - silH - padY
-  else silY = (h - silH) / 2
-  silX = Math.round(silX)
-  silY = Math.round(silY)
+  let targetSilX, targetSilY
+  if (alignH === 'left') targetSilX = Math.round(padX)
+  else if (alignH === 'right') targetSilX = Math.round(w - silW - padX)
+  else targetSilX = centeredSilX
+  if (alignV === 'top') targetSilY = Math.round(padY)
+  else if (alignV === 'bottom') targetSilY = Math.round(h - silH - padY)
+  else targetSilY = centeredSilY
+  const offsetX = targetSilX - centeredSilX
+  const offsetY = targetSilY - centeredSilY
 
-  // Build canvas-sized mask: 1 inside the fit-and-centered silhouette, else 0.
+  // Centered scaled mask — drives both packing and tint rendering.
   const scaledMask = new Uint8Array(w * h)
-  for (let y = silY; y < silY + silH; y++) {
+  for (let y = centeredSilY; y < centeredSilY + silH; y++) {
     if (y < 0 || y >= h) continue
-    for (let x = silX; x < silX + silW; x++) {
+    for (let x = centeredSilX; x < centeredSilX + silW; x++) {
       if (x < 0 || x >= w) continue
-      const ox = Math.min(maskWidth - 1, Math.floor((x - silX) / scaleFit))
-      const oy = Math.min(maskHeight - 1, Math.floor((y - silY) / scaleFit))
+      const ox = Math.min(maskWidth - 1, Math.floor((x - centeredSilX) / scaleFit))
+      const oy = Math.min(maskHeight - 1, Math.floor((y - centeredSilY) / scaleFit))
       scaledMask[y * w + x] = mask[oy * maskWidth + ox]
     }
   }
@@ -71,32 +76,45 @@ export async function renderWordCloudToCanvas({
 
   // 1. Background
   if (style.backgroundType === 'pattern' && style.backgroundValue) {
-    const pat = await loadPattern(style.backgroundValue)
-    if (pat) ctx.fillStyle = ctx.createPattern(pat, 'repeat')
-    else ctx.fillStyle = '#f7f5f0'
+    const pat = await loadPattern(style.backgroundValue, palette.colors)
+    if (pat) {
+      const cssScale = (w / 580) * (style.patternScale || 1) * pat.baseScale
+      const pattern = ctx.createPattern(pat.source, 'repeat')
+      if (pattern.setTransform) {
+        pattern.setTransform(new DOMMatrix().scale(cssScale, cssScale))
+      }
+      ctx.fillStyle = pattern
+    } else {
+      ctx.fillStyle = '#f7f5f0'
+    }
+    ctx.fillRect(0, 0, w, h)
+    // Apply pattern opacity by overlaying cream — since the pattern's own
+    // background is cream, this fades only the marks without re-rasterizing.
+    const opacity = Math.max(0, Math.min(1, style.patternOpacity ?? 1))
+    if (opacity < 1) {
+      ctx.save()
+      ctx.globalAlpha = 1 - opacity
+      ctx.fillStyle = '#f7f5f0'
+      ctx.fillRect(0, 0, w, h)
+      ctx.restore()
+    }
   } else {
     ctx.fillStyle = style.backgroundValue || '#f7f5f0'
+    ctx.fillRect(0, 0, w, h)
   }
-  ctx.fillRect(0, 0, w, h)
 
-  // 2. Faint silhouette tint (so pet shape reads even when packing is sparse)
+  // 2 & 3. Apply alignment translation, then render tint + words on top.
   ctx.save()
-  ctx.fillStyle = withAlpha(palette.colors[0] || '#1a1a1a', 0.04)
-  for (let y = 0; y < h; y++) {
-    let runStart = -1
-    for (let x = 0; x < w; x++) {
-      const m = scaledMask[y * w + x]
-      if (m && runStart === -1) runStart = x
-      else if (!m && runStart !== -1) {
-        ctx.fillRect(runStart, y, x - runStart, 1)
-        runStart = -1
-      }
-    }
-    if (runStart !== -1) ctx.fillRect(runStart, y, w - runStart, 1)
-  }
-  ctx.restore()
+  ctx.translate(offsetX, offsetY)
 
-  // 3. Words at their actual computed sizes
+  if ((style.silhouetteMode || 'tint') === 'tint') {
+    const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
+    const fillColor = usingPattern
+      ? '#f7f5f0' // opaque cream so the pattern doesn't show through behind words
+      : withAlpha(palette.colors[0] || '#1a1a1a', 0.04)
+    paintSilhouetteFill(ctx, scaledMask, w, h, fillColor)
+  }
+
   for (const p of placements) {
     ctx.save()
     ctx.font = `${p.fontWeight} ${p.fontSize}px "${p.fontFamily}", sans-serif`
@@ -108,6 +126,8 @@ export async function renderWordCloudToCanvas({
     ctx.fillText(p.text, 0, 0)
     ctx.restore()
   }
+
+  ctx.restore()
 }
 
 function packWords(words, mask, maskW, maskH, ctx, seed) {
@@ -148,14 +168,16 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
 
       if (x0 < padding || y0 < padding || x1 > maskW - padding || y1 > maskH - padding) continue
 
-      // Sample bounding box for silhouette containment.
-      // 5x5 grid + center + 4 midpoints = 25 points covering the box.
+      // Sample bounding box for silhouette containment. Sample density
+      // scales with box size (~one sample every 5px) so wide words can't
+      // straddle gaps in multi-region shapes (e.g. between paw pads).
+      const Nx = Math.max(5, Math.ceil(boxW / 5))
+      const Ny = Math.max(5, Math.ceil(boxH / 5))
       let inMask = true
-      const N = 5
-      for (let i = 0; i < N && inMask; i++) {
-        for (let j = 0; j < N && inMask; j++) {
-          const sx = Math.floor(x0 + (i / (N - 1)) * boxW)
-          const sy = Math.floor(y0 + (j / (N - 1)) * boxH)
+      for (let i = 0; i <= Nx && inMask; i++) {
+        for (let j = 0; j <= Ny && inMask; j++) {
+          const sx = Math.floor(x0 + (i / Nx) * boxW)
+          const sy = Math.floor(y0 + (j / Ny) * boxH)
           if (sx < 0 || sx >= maskW || sy < 0 || sy >= maskH || !mask[sy * maskW + sx]) {
             inMask = false
           }
@@ -198,17 +220,100 @@ async function ensureFontsLoaded() {
 }
 
 const _patternCache = new Map()
-async function loadPattern(src) {
-  if (_patternCache.has(src)) return _patternCache.get(src)
-  const img = await new Promise((resolve, reject) => {
+async function loadPattern(src, paletteColors) {
+  const primary = withHexAlpha(paletteColors?.[0] || '#d0c8b8', 0.4)
+  const secondary = withHexAlpha(paletteColors?.[1] || paletteColors?.[0] || '#e8e3d8', 0.22)
+  const cacheKey = `${src}|${primary}|${secondary}`
+  if (_patternCache.has(cacheKey)) return _patternCache.get(cacheKey)
+
+  const HI_RES = 512
+  const text = await fetch(src).then((r) => r.text()).catch(() => null)
+  let entry = null
+
+  if (text) {
+    // Tint pattern marks (cream bg stays untouched).
+    const tinted = text
+      .replaceAll(/#d0c8b8/gi, primary)
+      .replaceAll(/#e8e3d8/gi, secondary)
+    const doc = new DOMParser().parseFromString(tinted, 'image/svg+xml')
+    const svg = doc.documentElement
+    const naturalSize = parseInt(
+      svg.getAttribute('width') ||
+        (svg.getAttribute('viewBox') || '').split(/\s+/)[2] ||
+        '64',
+      10,
+    ) || 64
+    svg.setAttribute('width', String(HI_RES))
+    svg.setAttribute('height', String(HI_RES))
+    const xml = new XMLSerializer().serializeToString(svg)
+    const img = await loadImage(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`
+    )
+    if (img) {
+      const sourceSize = Math.max(img.naturalWidth || HI_RES, 1)
+      entry = { source: img, baseScale: naturalSize / sourceSize }
+    }
+  }
+
+  if (!entry) {
+    // Fallback: load original SVG as-is (no tint, no upscale).
+    const native = await loadImage(src)
+    if (!native) return null
+    entry = { source: native, baseScale: 1 }
+  }
+
+  _patternCache.set(cacheKey, entry)
+  return entry
+}
+
+function withHexAlpha(color, alphaFraction) {
+  if (!color || !color.startsWith('#')) return color
+  const expanded = color.length === 4
+    ? '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3]
+    : color.slice(0, 7)
+  const a = Math.round(Math.max(0, Math.min(1, alphaFraction)) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  return expanded + a
+}
+
+function loadImage(src) {
+  return new Promise((resolve) => {
     const i = new Image()
     i.crossOrigin = 'anonymous'
     i.onload = () => resolve(i)
-    i.onerror = reject
+    i.onerror = () => resolve(null)
     i.src = src
-  }).catch(() => null)
-  if (img) _patternCache.set(src, img)
-  return img
+  })
+}
+
+function paintSilhouetteFill(ctx, scaledMask, w, h, color) {
+  // Render the binary silhouette to an offscreen canvas, then drawImage it
+  // back through a small blur filter to anti-alias the staircase edge.
+  const off = document.createElement('canvas')
+  off.width = w
+  off.height = h
+  const octx = off.getContext('2d')
+  octx.fillStyle = color
+  for (let y = 0; y < h; y++) {
+    let runStart = -1
+    for (let x = 0; x < w; x++) {
+      const m = scaledMask[y * w + x]
+      if (m && runStart === -1) runStart = x
+      else if (!m && runStart !== -1) {
+        octx.fillRect(runStart, y, x - runStart, 1)
+        runStart = -1
+      }
+    }
+    if (runStart !== -1) octx.fillRect(runStart, y, w - runStart, 1)
+  }
+
+  ctx.save()
+  // Scale blur with canvas size so high-res exports get proportional smoothing.
+  const blurPx = Math.max(0.6, w / 800)
+  ctx.filter = `blur(${blurPx}px)`
+  ctx.drawImage(off, 0, 0)
+  ctx.restore()
 }
 
 function withAlpha(color, alpha) {

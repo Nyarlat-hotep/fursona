@@ -54,7 +54,14 @@ export default function NamesStep({ project, dispatch }) {
         ))}
       </ul>
       <div className="step-footer">
-        <button className="back" onClick={() => dispatch({ type: 'BACK' })}>
+        <button
+          className="back"
+          onClick={() =>
+            project.photoBlob
+              ? dispatch({ type: 'BACK' })
+              : dispatch({ type: 'GOTO', step: 0 })
+          }
+        >
           <ArrowLeft size={16} weight="bold" />
           <span>Back</span>
         </button>

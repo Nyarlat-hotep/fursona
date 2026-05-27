@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Camera, CaretDown } from '@phosphor-icons/react'
 import { prefetchModel } from '../lib/backgroundRemoval'
+import { shapeToMaskBitmap } from '../lib/shapeMask'
+import { SHAPES } from '../styles/shapes'
 import './UploadStep.css'
 
 export default function UploadStep({ project, dispatch }) {
@@ -8,8 +10,7 @@ export default function UploadStep({ project, dispatch }) {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState(null)
   const [tipsOpen, setTipsOpen] = useState(false)
-
-  useEffect(() => { prefetchModel() }, [])
+  const [loadingShape, setLoadingShape] = useState(null)
 
   function handleFile(file) {
     if (!file) return
@@ -22,17 +23,31 @@ export default function UploadStep({ project, dispatch }) {
     dispatch({ type: 'SET_PHOTO', blob: file, url })
   }
 
+  async function pickShape(shape) {
+    if (loadingShape) return
+    setLoadingShape(shape.id)
+    setError(null)
+    try {
+      const bitmap = await shapeToMaskBitmap(shape.Icon)
+      dispatch({ type: 'SET_SHAPE', bitmap })
+      dispatch({ type: 'GOTO', step: 2 })
+    } catch (e) {
+      setError(`Couldn't load that shape: ${e.message}`)
+      setLoadingShape(null)
+    }
+  }
+
   return (
     <div className="upload-step">
       <div
         className={`drop-zone ${dragOver ? 'is-over' : ''} ${project.photoUrl ? 'has-photo' : ''}`}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); prefetchModel() }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {
           e.preventDefault(); setDragOver(false)
           handleFile(e.dataTransfer.files?.[0])
         }}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => { prefetchModel(); inputRef.current?.click() }}
       >
         {project.photoUrl ? (
           <img src={project.photoUrl} alt="Uploaded pet" className="preview" />
@@ -77,6 +92,26 @@ export default function UploadStep({ project, dispatch }) {
               <li>Side or 3/4 profiles often look better than head-on shots</li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      <div className="shapes-section">
+        <div className="shapes-divider"><span>or pick a shape</span></div>
+        <div className="shapes-grid">
+          {SHAPES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={`shape-tile ${loadingShape === s.id ? 'is-loading' : ''}`}
+              onClick={() => pickShape(s)}
+              disabled={loadingShape !== null}
+              title={s.label}
+              aria-label={s.label}
+            >
+              <s.Icon size={36} weight="fill" />
+              <span className="shape-label">{s.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
