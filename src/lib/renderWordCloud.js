@@ -50,7 +50,7 @@ export async function renderWordCloudToCanvas({
 
   // 2. Faint silhouette tint (so pet shape reads even when packing is sparse)
   ctx.save()
-  ctx.fillStyle = withAlpha(palette.colors[0] || '#1a1a1a', 0.10)
+  ctx.fillStyle = withAlpha(palette.colors[0] || '#1a1a1a', 0.04)
   for (let y = 0; y < h; y++) {
     let runStart = -1
     for (let x = 0; x < w; x++) {

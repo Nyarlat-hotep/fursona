@@ -1,8 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './NamesStep.css'
+
+// TODO(testing): remove auto-fill before production
+const TEST_NAMES = [
+  'Biscuit', 'Mr. Whiskers', 'Pumpkin', 'Bear', 'Noodle',
+  'Peanut', 'Pickle', 'Bandit', 'Mochi', 'Luna',
+  'Ziggy', 'Toast', 'Marble', 'Pepper', 'Cinnamon',
+  'Olive', 'Mango', 'Cooper', 'Daisy', 'Finn',
+  'Hazel', 'Milo', 'Ruby', 'Tilly', 'Waffles',
+]
 
 export default function NamesStep({ project, dispatch }) {
   const [draft, setDraft] = useState('')
+  const autoFilledRef = useRef(false)
+
+  useEffect(() => {
+    if (autoFilledRef.current) return
+    if (project.names.length === 0) {
+      autoFilledRef.current = true
+      for (const text of TEST_NAMES) dispatch({ type: 'ADD_NAME', text })
+    }
+  }, [project.names.length, dispatch])
 
   function add() {
     const text = draft.trim()
