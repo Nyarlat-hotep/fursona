@@ -20,8 +20,30 @@ export async function renderWordCloudToCanvas({
 
   await ensureFontsLoaded()
 
-  // Scale mask to render size with nearest-neighbor (no edge smoothing)
-  const scaledMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
+  // Fit silhouette into canvas with optional padding, preserving aspect.
+  // When canvas aspect matches silhouette aspect, the silhouette fills the
+  // canvas (minus padding). When they differ, the silhouette is centered
+  // and the leftover space shows the background only.
+  const padding = 0.04
+  const availW = w * (1 - padding * 2)
+  const availH = h * (1 - padding * 2)
+  const scaleFit = Math.min(availW / maskWidth, availH / maskHeight)
+  const silW = maskWidth * scaleFit
+  const silH = maskHeight * scaleFit
+  const silX = Math.round((w - silW) / 2)
+  const silY = Math.round((h - silH) / 2)
+
+  // Build canvas-sized mask: 1 inside the fit-and-centered silhouette, else 0.
+  const scaledMask = new Uint8Array(w * h)
+  for (let y = silY; y < silY + silH; y++) {
+    if (y < 0 || y >= h) continue
+    for (let x = silX; x < silX + silW; x++) {
+      if (x < 0 || x >= w) continue
+      const ox = Math.min(maskWidth - 1, Math.floor((x - silX) / scaleFit))
+      const oy = Math.min(maskHeight - 1, Math.floor((y - silY) / scaleFit))
+      scaledMask[y * w + x] = mask[oy * maskWidth + ox]
+    }
+  }
 
   // Word occurrences with assigned styles + size tier multipliers
   const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 14 })
@@ -164,18 +186,6 @@ async function ensureFontsLoaded() {
     FONTS.map((f) => document.fonts.load(`${f.weight} 32px "${f.family}"`).catch(() => null)),
   )
   return _fontsLoadedPromise
-}
-
-function scaleMaskToCanvas(mask, mw, mh, tw, th) {
-  const out = new Uint8Array(tw * th)
-  for (let y = 0; y < th; y++) {
-    const sy = Math.min(mh - 1, Math.floor((y * mh) / th))
-    for (let x = 0; x < tw; x++) {
-      const sx = Math.min(mw - 1, Math.floor((x * mw) / tw))
-      out[y * tw + x] = mask[sy * mw + sx]
-    }
-  }
-  return out
 }
 
 const _patternCache = new Map()

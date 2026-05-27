@@ -91,6 +91,16 @@ export default function StyleStep({ project, dispatch }) {
       </aside>
 
       <section className="preview">
+        <div className="preview-toolbar">
+          <button
+            type="button"
+            className="center-toggle"
+            onClick={() => setStyle({ centered: !project.style.centered })}
+            title={project.style.centered ? 'Switch to silhouette-shaped canvas' : 'Center silhouette on a square canvas'}
+          >
+            {project.style.centered ? '⤧ Fill canvas' : '↔↕ Center on canvas'}
+          </button>
+        </div>
         <WordCloudCanvas project={project} width={580} />
       </section>
     </div>

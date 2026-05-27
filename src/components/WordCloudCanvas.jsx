@@ -11,7 +11,9 @@ export default function WordCloudCanvas({ project, width }) {
     const { mask, width: mw, height: mh } = project.maskBitmap
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     const cssW = width
-    const cssH = Math.round((width * mh) / mw)
+    const cssH = project.style.centered
+      ? width
+      : Math.round((width * mh) / mw)
     const renderW = Math.round(cssW * dpr)
     const renderH = Math.round(cssH * dpr)
 

@@ -4,7 +4,7 @@ export const initialProject = {
   photoUrl: null,
   maskBitmap: null,
   names: [],
-  style: { backgroundType: 'color', backgroundValue: '#f7f5f0', paletteId: 'mono' },
+  style: { backgroundType: 'color', backgroundValue: '#f7f5f0', paletteId: 'mono', centered: false },
   seed: 1,
   lastExportedAt: null,
 }
