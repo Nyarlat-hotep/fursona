@@ -4,7 +4,13 @@ export const initialProject = {
   photoUrl: null,
   maskBitmap: null,
   names: [],
-  style: { backgroundType: 'color', backgroundValue: '#f7f5f0', paletteId: 'mono', centered: false },
+  style: {
+    backgroundType: 'color',
+    backgroundValue: '#f7f5f0',
+    paletteId: 'mono',
+    alignH: 'center',  // 'left' | 'center' | 'right'
+    alignV: 'middle',  // 'top'  | 'middle' | 'bottom'
+  },
   seed: 1,
   lastExportedAt: null,
 }

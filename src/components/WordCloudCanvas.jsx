@@ -10,10 +10,9 @@ export default function WordCloudCanvas({ project, width }) {
     if (!project.maskBitmap || project.names.length === 0) return
     const { mask, width: mw, height: mh } = project.maskBitmap
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    // Square canvas so silhouette has room to move horizontally and vertically.
     const cssW = width
-    const cssH = project.style.centered
-      ? width
-      : Math.round((width * mh) / mw)
+    const cssH = width
     const renderW = Math.round(cssW * dpr)
     const renderH = Math.round(cssH * dpr)
 

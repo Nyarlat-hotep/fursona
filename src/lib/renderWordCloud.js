@@ -20,18 +20,27 @@ export async function renderWordCloudToCanvas({
 
   await ensureFontsLoaded()
 
-  // Fit silhouette into canvas with optional padding, preserving aspect.
-  // When canvas aspect matches silhouette aspect, the silhouette fills the
-  // canvas (minus padding). When they differ, the silhouette is centered
-  // and the leftover space shows the background only.
+  // Fit silhouette into canvas preserving aspect, with a small safe margin,
+  // then offset to the alignment chosen in style (alignH / alignV).
   const padding = 0.04
-  const availW = w * (1 - padding * 2)
-  const availH = h * (1 - padding * 2)
+  const padX = w * padding
+  const padY = h * padding
+  const availW = w - padX * 2
+  const availH = h - padY * 2
   const scaleFit = Math.min(availW / maskWidth, availH / maskHeight)
   const silW = maskWidth * scaleFit
   const silH = maskHeight * scaleFit
-  const silX = Math.round((w - silW) / 2)
-  const silY = Math.round((h - silH) / 2)
+  const alignH = style.alignH || 'center'
+  const alignV = style.alignV || 'middle'
+  let silX, silY
+  if (alignH === 'left') silX = padX
+  else if (alignH === 'right') silX = w - silW - padX
+  else silX = (w - silW) / 2
+  if (alignV === 'top') silY = padY
+  else if (alignV === 'bottom') silY = h - silH - padY
+  else silY = (h - silH) / 2
+  silX = Math.round(silX)
+  silY = Math.round(silY)
 
   // Build canvas-sized mask: 1 inside the fit-and-centered silhouette, else 0.
   const scaledMask = new Uint8Array(w * h)

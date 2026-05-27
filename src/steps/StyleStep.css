@@ -148,24 +148,51 @@
   min-height: 400px;
 }
 
-.style-step .preview-toolbar {
+.style-step .align-bar {
   display: flex;
-  width: 100%;
-  justify-content: center;
+  gap: 16px;
+  align-items: center;
 }
 
-.style-step .center-toggle {
-  padding: 6px 14px;
-  border: 1px solid #d0c8b8;
+.style-step .align-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
   background: #fff;
+  border: 1px solid #d0c8b8;
   border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6a4a2c;
+  padding: 2px;
 }
 
-.style-step .center-toggle:hover {
+.style-step .align-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #888;
+  padding: 0 6px;
+  letter-spacing: 0.06em;
+}
+
+.style-step .align-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  color: #6a4a2c;
+  padding: 0;
+}
+
+.style-step .align-btn:hover {
   background: #f0ebde;
+}
+
+.style-step .align-btn.active {
+  background: #6a4a2c;
+  color: #fff;
 }
 
 @media (max-width: 720px) {
