@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PencilSimple, ArrowLeft } from '@phosphor-icons/react'
 import { removeBackground } from '../lib/backgroundRemoval'
 import { binarize, boundingBox, cropMask } from '../lib/mask'
 import MaskEditor from '../components/MaskEditor'
@@ -108,21 +109,24 @@ export default function ExtractStep({ project, dispatch }) {
         <div className="compare">
           <figure>
             <img src={project.photoUrl} alt="Original" className="thumb" />
-            <figcaption>Original</figcaption>
           </figure>
           <figure>
             <img src={project.maskBitmap.previewUrl} alt="Silhouette" className="thumb checker" />
-            <figcaption>Silhouette</figcaption>
+            <button
+              className="refine-link"
+              onClick={() => setEditing(true)}
+              disabled={!project.maskBitmap?.bbox}
+            >
+              <PencilSimple size={16} weight="bold" />
+              <span>Refine silhouette</span>
+            </button>
           </figure>
         </div>
       )}
-      <div className="actions">
-        <button onClick={() => dispatch({ type: 'GOTO', step: 0 })}>Try another photo</button>
-        <button
-          onClick={() => setEditing(true)}
-          disabled={status !== 'done' || !project.maskBitmap?.bbox}
-        >
-          ✎ Refine silhouette
+      <div className="step-footer">
+        <button className="back" onClick={() => dispatch({ type: 'BACK' })}>
+          <ArrowLeft size={16} weight="bold" />
+          <span>Back</span>
         </button>
         <button className="primary" onClick={() => dispatch({ type: 'NEXT' })} disabled={status !== 'done'}>
           Looks good

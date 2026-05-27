@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Camera, CaretDown } from '@phosphor-icons/react'
 import { prefetchModel } from '../lib/backgroundRemoval'
 import './UploadStep.css'
 
@@ -6,6 +7,7 @@ export default function UploadStep({ project, dispatch }) {
   const inputRef = useRef(null)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState(null)
+  const [tipsOpen, setTipsOpen] = useState(false)
 
   useEffect(() => { prefetchModel() }, [])
 
@@ -50,16 +52,33 @@ export default function UploadStep({ project, dispatch }) {
       </div>
       {error && <p className="error">{error}</p>}
 
-      <details className="tips">
-        <summary>📸 Tips for the best silhouette</summary>
-        <ul>
-          <li>Pick a photo with one clear subject — your pet, centered</li>
-          <li>A plain, uncluttered background works best (grass, wall, floor)</li>
-          <li>Good lighting helps — avoid backlit shots and deep shadows</li>
-          <li>The whole pet should be in frame, ideally not cropped at edges</li>
-          <li>Side or 3/4 profiles often look better than head-on shots</li>
-        </ul>
-      </details>
+      <div className={`tips ${tipsOpen ? 'is-open' : ''}`}>
+        <button
+          type="button"
+          className="tips-summary"
+          onClick={() => setTipsOpen((o) => !o)}
+          aria-expanded={tipsOpen}
+        >
+          <span className="tips-title">
+            <Camera size={18} weight="bold" />
+            Tips for the best silhouette
+          </span>
+          <span className="tips-chevron" aria-hidden="true">
+            <CaretDown size={16} weight="bold" />
+          </span>
+        </button>
+        <div className="tips-content">
+          <div className="tips-inner">
+            <ul>
+              <li>Pick a photo with one clear subject — your pet, centered</li>
+              <li>A plain, uncluttered background works best (grass, wall, floor)</li>
+              <li>Good lighting helps — avoid backlit shots and deep shadows</li>
+              <li>The whole pet should be in frame, ideally not cropped at edges</li>
+              <li>Side or 3/4 profiles often look better than head-on shots</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       {project.photoUrl && (
         <button className="primary" onClick={() => dispatch({ type: 'NEXT' })}>Continue</button>

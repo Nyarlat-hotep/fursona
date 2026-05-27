@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { renderWordCloudToCanvas } from '../lib/renderWordCloud'
-import { paletteById } from '../styles/palettes'
+import { resolvePalette } from '../styles/palettes'
 import './WordCloudCanvas.css'
 
 export default function WordCloudCanvas({ project, width }) {
@@ -32,7 +32,7 @@ export default function WordCloudCanvas({ project, width }) {
       names: project.names.map((n) => n.text),
       seed: project.seed,
       style: project.style,
-      palette: paletteById(project.style.paletteId),
+      palette: resolvePalette(project.style),
     }).catch((e) => {
       if (!cancelled) console.error('Word cloud render failed:', e)
     })

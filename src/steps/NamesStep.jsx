@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { X, ArrowLeft } from '@phosphor-icons/react'
 import './NamesStep.css'
 
 // TODO(testing): remove auto-fill before production
@@ -46,12 +47,17 @@ export default function NamesStep({ project, dispatch }) {
         {project.names.map((n, i) => (
           <li key={i} className="chip">
             <span>{n.text}</span>
-            <button aria-label={`Remove ${n.text}`} onClick={() => dispatch({ type: 'REMOVE_NAME', index: i })}>×</button>
+            <button aria-label={`Remove ${n.text}`} onClick={() => dispatch({ type: 'REMOVE_NAME', index: i })}>
+              <X size={12} weight="bold" />
+            </button>
           </li>
         ))}
       </ul>
-      <div className="actions">
-        <button onClick={() => dispatch({ type: 'BACK' })}>Back</button>
+      <div className="step-footer">
+        <button className="back" onClick={() => dispatch({ type: 'BACK' })}>
+          <ArrowLeft size={16} weight="bold" />
+          <span>Back</span>
+        </button>
         <button
           className="primary"
           onClick={() => dispatch({ type: 'NEXT' })}

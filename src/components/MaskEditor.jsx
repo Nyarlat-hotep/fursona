@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowUUpLeft } from '@phosphor-icons/react'
 import './MaskEditor.css'
 
 const MAX_DISPLAY_W = 700
@@ -311,8 +312,11 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
           <span>{brushSize}px</span>
         </label>
         <div className="history">
-          <button type="button" onClick={undo} disabled={undoDepth === 0}>↶ Undo</button>
-          <button type="button" onClick={reset}>Reset to AI</button>
+          <button type="button" onClick={undo} disabled={undoDepth === 0}>
+            <ArrowUUpLeft size={14} weight="bold" />
+            <span>Undo</span>
+          </button>
+          <button type="button" onClick={reset}>Reset image</button>
         </div>
       </div>
 

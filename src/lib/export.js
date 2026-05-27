@@ -1,5 +1,5 @@
 import { renderWordCloudToCanvas } from './renderWordCloud'
-import { paletteById } from '../styles/palettes'
+import { resolvePalette } from '../styles/palettes'
 
 const SIZES = {
   '5x7':   { wIn: 5,  hIn: 7  },
@@ -31,7 +31,7 @@ export async function exportPng(project, sizeKey) {
     names: project.names.map((n) => n.text),
     seed: project.seed,
     style: project.style,
-    palette: paletteById(project.style.paletteId),
+    palette: resolvePalette(project.style),
   })
 
   return await new Promise((resolve, reject) => {

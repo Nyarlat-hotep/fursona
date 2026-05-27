@@ -41,13 +41,12 @@ A free, browser-only tool where a user uploads a photo of their pet, types in th
 - **`html-to-image`** (or direct `canvas.toBlob`) — PNG export.
 - **GitHub Actions → `gh-pages`** branch deploy on push to `main`.
 
-## User flow (5 steps, single-page, step index in state — no router)
+## User flow (4 steps, single-page, step index in state — no router)
 
 1. **Upload** — drop zone + file picker (JPG/PNG/HEIC). Show preview. Prefetch the background-removal model while user is on this screen.
 2. **Extract** — show original + auto-extracted silhouette side by side. "Looks good" / "Try another photo".
 3. **Nicknames** — chip-style input. Enter to add, ✕ to remove. (Optional per-chip rotation toggle.)
-4. **Style** — sidebar: background color picker, ~10 bundled pattern tiles, 4–5 curated color palettes for words, **Regenerate** button (re-rolls RNG seed). Live preview canvas at ~600×750.
-5. **Download** — pick print size, click Download PNG. Re-renders to high-res off-screen canvas with the same seed.
+4. **Style & Download** — sidebar: background color picker, ~10 bundled pattern tiles, 4–5 curated color palettes for words, **Regenerate** button (re-rolls RNG seed), print-size picker, Fit/Crop toggle, **Download PNG** button. Live preview canvas at ~600×750. Download re-renders to a high-res off-screen canvas with the same seed.
 
 Back button on every step except Upload. State preserved across steps.
 

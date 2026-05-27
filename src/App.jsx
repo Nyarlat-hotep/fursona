@@ -1,14 +1,14 @@
 import { useEffect, useReducer } from 'react'
+import { ArrowCounterClockwise } from '@phosphor-icons/react'
 import { initialProject, projectReducer } from './state/projectStore'
 import { loadDraft, saveDraft } from './storage'
 import UploadStep from './steps/UploadStep'
 import ExtractStep from './steps/ExtractStep'
 import NamesStep from './steps/NamesStep'
 import StyleStep from './steps/StyleStep'
-import DownloadStep from './steps/DownloadStep'
 import './App.css'
 
-const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style', 'Download']
+const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style & Download']
 
 function UserMenu() { return null }
 
@@ -18,14 +18,11 @@ function HeaderActions({ project, dispatch }) {
     <div className="header-actions">
       <button
         className="start-over"
-        onClick={() => {
-          if (confirm('Start over from scratch? Your current pet, names, and style will be cleared.')) {
-            dispatch({ type: 'RESET' })
-          }
-        }}
+        onClick={() => dispatch({ type: 'RESET' })}
         type="button"
       >
-        ↺ Start over
+        <ArrowCounterClockwise size={16} weight="bold" />
+        <span>Start over</span>
       </button>
       <UserMenu />
     </div>
@@ -54,7 +51,6 @@ export default function App() {
             {project.step === 1 && <ExtractStep project={project} dispatch={dispatch} />}
             {project.step === 2 && <NamesStep project={project} dispatch={dispatch} />}
             {project.step === 3 && <StyleStep project={project} dispatch={dispatch} />}
-            {project.step === 4 && <DownloadStep project={project} dispatch={dispatch} />}
           </div>
         </div>
       </main>

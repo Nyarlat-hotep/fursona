@@ -1,5 +1,5 @@
 export const initialProject = {
-  step: 0,           // 0=Upload 1=Extract 2=Names 3=Style 4=Download
+  step: 0,           // 0=Upload 1=Extract 2=Names 3=Style+Download
   photoBlob: null,
   photoUrl: null,
   maskBitmap: null,
@@ -8,6 +8,7 @@ export const initialProject = {
     backgroundType: 'color',
     backgroundValue: '#f7f5f0',
     paletteId: 'mono',
+    customPaletteColors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'],
     alignH: 'center',  // 'left' | 'center' | 'right'
     alignV: 'middle',  // 'top'  | 'middle' | 'bottom'
   },
@@ -15,7 +16,7 @@ export const initialProject = {
   lastExportedAt: null,
 }
 
-const MAX_STEP = 4
+const MAX_STEP = 3
 
 export function projectReducer(state, action) {
   switch (action.type) {

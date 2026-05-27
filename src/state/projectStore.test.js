@@ -14,9 +14,9 @@ describe('projectReducer', () => {
     expect(s2.step).toBe(0)
   })
 
-  it('does not advance past step 4 or rewind below 0', () => {
-    const at4 = { ...initialProject, step: 4 }
-    expect(projectReducer(at4, { type: 'NEXT' }).step).toBe(4)
+  it('does not advance past step 3 or rewind below 0', () => {
+    const at3 = { ...initialProject, step: 3 }
+    expect(projectReducer(at3, { type: 'NEXT' }).step).toBe(3)
     expect(projectReducer(initialProject, { type: 'BACK' }).step).toBe(0)
   })
 

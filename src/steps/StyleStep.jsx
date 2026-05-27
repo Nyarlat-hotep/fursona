@@ -1,7 +1,12 @@
+import { useState } from 'react'
+import { ArrowsClockwise, ArrowLeft } from '@phosphor-icons/react'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
+import { exportPng, listExportSizes } from '../lib/export'
 import './StyleStep.css'
+
+const EXPORT_SIZES = listExportSizes()
 
 function AlignIcon({ axis, pos }) {
   // 18×18 viewbox: outer rounded square, inner filled rect positioned per axis+pos
@@ -25,7 +30,7 @@ function AlignIcon({ axis, pos }) {
   )
 }
 
-function AlignmentBar({ style, setStyle }) {
+function AlignmentBar({ style, setStyle, onRegenerate }) {
   const { alignH, alignV } = style
   const hOpts = [
     { id: 'left',   label: 'Align left' },
@@ -71,6 +76,15 @@ function AlignmentBar({ style, setStyle }) {
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        className="regen-btn"
+        onClick={onRegenerate}
+        title="Regenerate cloud"
+        aria-label="Regenerate cloud"
+      >
+        <ArrowsClockwise size={18} weight="bold" />
+      </button>
     </div>
   )
 }
@@ -79,9 +93,34 @@ export default function StyleStep({ project, dispatch }) {
   const setStyle = (patch) => dispatch({ type: 'SET_STYLE', patch })
   const { backgroundType, backgroundValue, paletteId } = project.style
 
+  const [size, setSize] = useState('8x10')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function download() {
+    setBusy(true)
+    setError(null)
+    try {
+      const blob = await exportPng(project, size)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `pet-cloud-${size}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (e) {
+      setError(`Could not render at ${size}. Try a smaller size. (${e.message})`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="style-step">
-      <aside className="controls">
+      <div className="style-grid">
+        <aside className="controls">
         <fieldset>
           <legend>Background</legend>
           <div className="bg-type">
@@ -139,33 +178,73 @@ export default function StyleStep({ project, dispatch }) {
                 onChange={() => setStyle({ paletteId: p.id })}
               />
               <span className="palette-name">{p.label}</span>
-              <span className="swatches">
-                {p.colors.map((c) => <i key={c} style={{ background: c }} />)}
-              </span>
+              {p.custom ? (
+                <span className="swatches custom-swatches">
+                  {(project.style.customPaletteColors || []).map((c, i) => (
+                    <input
+                      key={i}
+                      type="color"
+                      value={c}
+                      onChange={(e) => {
+                        const next = [...(project.style.customPaletteColors || [])]
+                        next[i] = e.target.value
+                        setStyle({ paletteId: 'custom', customPaletteColors: next })
+                      }}
+                      aria-label={`Custom color ${i + 1}`}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ))}
+                </span>
+              ) : (
+                <span className="swatches">
+                  {p.colors.map((c) => <i key={c} style={{ background: c }} />)}
+                </span>
+              )}
             </label>
           ))}
         </fieldset>
 
+        <fieldset className="download-fieldset">
+          <legend>Print size</legend>
+          <label className="size-field">
+            <select
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              disabled={busy}
+            >
+              {EXPORT_SIZES.map((s) => (
+                <option key={s} value={s}>{s} in @ 300 DPI</option>
+              ))}
+            </select>
+          </label>
+          {error && <p className="download-error">{error}</p>}
+        </fieldset>
+        </aside>
+
+        <section className="preview">
+          <AlignmentBar
+            style={project.style}
+            setStyle={setStyle}
+            onRegenerate={() => dispatch({ type: 'REGENERATE' })}
+          />
+          <WordCloudCanvas project={project} width={580} />
+        </section>
+      </div>
+
+      <div className="step-footer">
+        <button className="back" onClick={() => dispatch({ type: 'BACK' })} disabled={busy}>
+          <ArrowLeft size={16} weight="bold" />
+          <span>Back</span>
+        </button>
         <button
-          className="regenerate"
-          onClick={() => dispatch({ type: 'REGENERATE' })}
+          className="primary"
+          onClick={download}
+          disabled={busy}
           type="button"
         >
-          🎲 Regenerate
+          {busy ? 'Rendering…' : `Download PNG (${size})`}
         </button>
-
-        <div className="actions">
-          <button onClick={() => dispatch({ type: 'BACK' })}>Back</button>
-          <button className="primary" onClick={() => dispatch({ type: 'NEXT' })}>
-            Continue to download
-          </button>
-        </div>
-      </aside>
-
-      <section className="preview">
-        <AlignmentBar style={project.style} setStyle={setStyle} />
-        <WordCloudCanvas project={project} width={580} />
-      </section>
+      </div>
     </div>
   )
 }

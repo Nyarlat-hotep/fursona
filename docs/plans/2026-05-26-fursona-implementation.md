@@ -287,9 +287,9 @@ describe('projectReducer', () => {
     expect(s2.step).toBe(0)
   })
 
-  it('does not advance past step 4 or rewind below 0', () => {
-    const at4 = { ...initialProject, step: 4 }
-    expect(projectReducer(at4, { type: 'NEXT' }).step).toBe(4)
+  it('does not advance past step 3 or rewind below 0', () => {
+    const at3 = { ...initialProject, step: 3 }
+    expect(projectReducer(at3, { type: 'NEXT' }).step).toBe(3)
     expect(projectReducer(initialProject, { type: 'BACK' }).step).toBe(0)
   })
 
@@ -320,7 +320,7 @@ Expected: fail — module missing.
 ```js
 // src/state/projectStore.js
 export const initialProject = {
-  step: 0,           // 0=Upload 1=Extract 2=Names 3=Style 4=Download
+  step: 0,           // 0=Upload 1=Extract 2=Names 3=Style+Download
   photoBlob: null,
   photoUrl: null,
   maskBitmap: null,
@@ -330,7 +330,7 @@ export const initialProject = {
   lastExportedAt: null,
 }
 
-const MAX_STEP = 4
+const MAX_STEP = 3
 
 export function projectReducer(state, action) {
   switch (action.type) {
@@ -383,7 +383,7 @@ import { useReducer } from 'react'
 import { initialProject, projectReducer } from './state/projectStore'
 import './App.css'
 
-const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style', 'Download']
+const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style & Download']
 
 function UserMenu() { return null }
 
@@ -1337,7 +1337,8 @@ git add -A && git commit -m "feat: word cloud canvas component using wordcloud2 
 - **Pattern grid** (10 PNG thumbnails) when Pattern selected — each tile click sets `style.backgroundValue` to the pattern URL
 - **Palette radio group** showing color swatches per palette
 - **Regenerate** button (dispatches `REGENERATE`)
-- **Continue → Download**
+
+(Download controls — print-size dropdown, Fit/Crop toggle, **Download PNG** button — are added to this same sidebar in Task 22, after the export pipeline lands.)
 
 ```jsx
 import { PALETTES } from '../styles/palettes'
@@ -1486,28 +1487,30 @@ git add -A && git commit -m "feat: high-res png export pipeline"
 
 ---
 
-### Task 22: DownloadStep
+### Task 22: Wire download controls into StyleStep
 
 **Files:**
-- Create: `/Users/taylorcornelius/Desktop/fursona/src/steps/DownloadStep.jsx`
-- Create: `/Users/taylorcornelius/Desktop/fursona/src/steps/DownloadStep.css`
-- Modify: `/Users/taylorcornelius/Desktop/fursona/src/App.jsx`
+- Modify: `/Users/taylorcornelius/Desktop/fursona/src/steps/StyleStep.jsx`
+- Modify: `/Users/taylorcornelius/Desktop/fursona/src/steps/StyleStep.css`
 
-**Step 1:** UI:
+**Step 1:** Add download controls into the StyleStep sidebar (below the existing Background / Palette / Regenerate controls):
 - Size dropdown (5×7, 8×10, 11×14, 16×20)
 - Fit/Crop toggle
-- Big "Download PNG" button
-- Spinner while rendering, toast on error
-- Below: small "Start over" link (`RESET` action)
+- Big "Download PNG" button (spinner state while rendering, inline error on failure)
+- "Start over" link (`RESET` action)
 
 ```jsx
 import { useState } from 'react'
+import { PALETTES } from '../styles/palettes'
+import WordCloudCanvas from '../components/WordCloudCanvas'
 import { exportPng } from '../lib/export'
-import './DownloadStep.css'
+import './StyleStep.css'
 
+const PATTERNS = [/* …as in Task 19 */]
 const SIZES = ['5x7', '8x10', '11x14', '16x20']
 
-export default function DownloadStep({ project, dispatch }) {
+export default function StyleStep({ project, dispatch }) {
+  const setStyle = (patch) => dispatch({ type: 'SET_STYLE', patch })
   const [size, setSize] = useState('8x10')
   const [fit, setFit] = useState('fit')
   const [busy, setBusy] = useState(false)
@@ -1531,37 +1534,48 @@ export default function DownloadStep({ project, dispatch }) {
   }
 
   return (
-    <div className="download-step">
-      <label>Print size
-        <select value={size} onChange={e => setSize(e.target.value)}>
-          {SIZES.map(s => <option key={s} value={s}>{s} in @ 300 DPI</option>)}
-        </select>
-      </label>
-      <label>Fit
-        <select value={fit} onChange={e => setFit(e.target.value)}>
-          <option value="fit">Fit (centered, background fills extra)</option>
-          <option value="crop">Crop (silhouette fills, edges may crop)</option>
-        </select>
-      </label>
-      <button className="primary big" onClick={download} disabled={busy}>
-        {busy ? 'Rendering…' : 'Download PNG'}
-      </button>
-      {error && <p className="error">{error}</p>}
-      <div className="actions">
-        <button onClick={() => dispatch({ type: 'BACK' })}>Back</button>
-        <button onClick={() => dispatch({ type: 'RESET' })}>Start over</button>
-      </div>
+    <div className="style-step">
+      <aside className="controls">
+        {/* …existing Background + Palette + Regenerate fieldsets… */}
+        <fieldset>
+          <legend>Download</legend>
+          <label>Print size
+            <select value={size} onChange={e => setSize(e.target.value)}>
+              {SIZES.map(s => <option key={s} value={s}>{s} in @ 300 DPI</option>)}
+            </select>
+          </label>
+          <label>Fit
+            <select value={fit} onChange={e => setFit(e.target.value)}>
+              <option value="fit">Fit (centered, background fills extra)</option>
+              <option value="crop">Crop (silhouette fills, edges may crop)</option>
+            </select>
+          </label>
+          <button className="primary big" onClick={download} disabled={busy}>
+            {busy ? 'Rendering…' : 'Download PNG'}
+          </button>
+          {error && <p className="error">{error}</p>}
+        </fieldset>
+        <div className="actions">
+          <button onClick={() => dispatch({ type: 'BACK' })}>Back</button>
+          <button onClick={() => dispatch({ type: 'RESET' })}>Start over</button>
+        </div>
+      </aside>
+      <section className="preview">
+        <WordCloudCanvas project={project} width={600} />
+      </section>
     </div>
   )
 }
 ```
 
-**Step 2:** Manual test: download 5×7 (fast), then 11×14 (slow but should work).
+**Step 2:** CSS — make the Download fieldset visually distinct (slightly heavier separator above it) so it reads as a separate action zone within the same sidebar.
 
-**Step 3:** Commit.
+**Step 3:** Manual test: download 5×7 (fast), then 11×14 (slow but should work). Confirm regenerate + download produces a PNG matching the on-screen preview at the same seed.
+
+**Step 4:** Commit.
 
 ```bash
-git add -A && git commit -m "feat: download step with size + fit options"
+git add -A && git commit -m "feat: merge download controls into style step"
 ```
 
 ---
@@ -1574,9 +1588,8 @@ git add -A && git commit -m "feat: download step with size + fit options"
 1. Upload — drop image, preview shows, Continue advances.
 2. Extract — silhouette appears within ~10 s on first run.
 3. Names — add 8–15 nicknames.
-4. Style — try color bg, switch to a pattern, switch palettes, click Regenerate 3×. Cloud should re-pack each time, deterministic per seed.
-5. Download — `5x7` → file downloads, opens, looks right.
-6. Refresh page — autosave should restore names/style/seed/step (photo + mask are session-only and will require re-upload; that's expected for phase 1).
+4. Style & Download — try color bg, switch to a pattern, switch palettes, click Regenerate 3×. Cloud should re-pack each time, deterministic per seed. Then pick `5x7` and click Download PNG → file downloads, opens, looks right.
+5. Refresh page — autosave should restore names/style/seed/step (photo + mask are session-only and will require re-upload; that's expected for phase 1).
 
 **Step 2:** Fix any bugs found. Commit each fix as its own commit.
 
@@ -1627,7 +1640,7 @@ git tag v0.1.0 && git push --tags
 ## Done criteria
 
 - Live at `https://Nyarlat-hotep.github.io/fursona/`
-- Upload → extract → name → style → download flow works end-to-end on Chrome + Safari + Firefox
+- Upload → extract → name → style & download flow works end-to-end on Chrome + Safari + Firefox
 - Generated PNG opens and looks like a pet-shaped word cloud
 - `npm test` is green
 - No paid APIs, no API keys, no backend

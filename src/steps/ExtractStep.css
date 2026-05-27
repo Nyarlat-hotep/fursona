@@ -4,6 +4,7 @@
   align-items: center;
   gap: 16px;
   width: 100%;
+  flex: 1;
 }
 
 .extract-step .loading {
@@ -107,29 +108,73 @@
   background-position: 0 0, 8px 8px;
 }
 
-.extract-step .actions {
-  display: flex;
-  gap: 12px;
-}
-
-.extract-step .actions button {
-  padding: 10px 20px;
+.extract-step .refine-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: #6a4a2c;
   border-radius: 8px;
-  border: 1px solid #d0c8b8;
-  background: #f7f5f0;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.extract-step .actions .primary {
-  background: #6a4a2c;
-  color: #fff;
-  border-color: #6a4a2c;
+.extract-step .refine-link:not(:disabled):hover {
+  background: #f0ebde;
 }
 
-.extract-step .actions .primary:disabled {
+.extract-step .refine-link:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.extract-step .actions .primary:not(:disabled):hover {
+.extract-step .step-footer {
+  align-self: stretch;
+  margin: auto -32px -32px;
+  padding: 16px 32px;
+  border-top: 1px solid #e8e3d8;
+  background: #faf8f3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-radius: 0 0 12px 12px;
+}
+
+.extract-step .step-footer .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: #6a4a2c;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.extract-step .step-footer .back:hover {
+  background: #f0ebde;
+}
+
+.extract-step .step-footer .primary {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #6a4a2c;
+  background: #6a4a2c;
+  color: #fff;
+  font-weight: 600;
+}
+
+.extract-step .step-footer .primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.extract-step .step-footer .primary:not(:disabled):hover {
   background: #563a22;
 }
