@@ -1,29 +1,42 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { ArrowCounterClockwise } from '@phosphor-icons/react'
 import { initialProject, projectReducer } from './state/projectStore'
 import { loadDraft, saveDraft } from './storage'
+import { useAuth } from './state/useAuth'
+import { isSupabaseConfigured } from './lib/supabase'
+import { hydrateSavedProject } from './lib/openProject'
 import UploadStep from './steps/UploadStep'
 import ExtractStep from './steps/ExtractStep'
 import NamesStep from './steps/NamesStep'
 import StyleStep from './steps/StyleStep'
+import UserMenu from './components/UserMenu'
+import SavesDropdown from './components/SavesDropdown'
+import SplashScreen from './components/SplashScreen'
 import './App.css'
 
 const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style & Download']
 
-function UserMenu() { return null }
-
-function HeaderActions({ project, dispatch }) {
-  if (project.step === 0 && !project.photoUrl) return <UserMenu />
+function HeaderActions({ project, dispatch, user, onOpenProject, refreshKey }) {
+  const showStartOver =
+    project.step > 0 ||
+    project.photoUrl ||
+    project.shapeId ||
+    project.currentProjectId
   return (
     <div className="header-actions">
-      <button
-        className="start-over"
-        onClick={() => dispatch({ type: 'RESET' })}
-        type="button"
-      >
-        <ArrowCounterClockwise size={16} weight="bold" />
-        <span>Start over</span>
-      </button>
+      {showStartOver && (
+        <button
+          className="start-over"
+          onClick={() => dispatch({ type: 'RESET' })}
+          type="button"
+        >
+          <ArrowCounterClockwise size={16} weight="bold" />
+          <span>Start over</span>
+        </button>
+      )}
+      {user && isSupabaseConfigured && (
+        <SavesDropdown user={user} onOpenProject={onOpenProject} refreshKey={refreshKey} />
+      )}
       <UserMenu />
     </div>
   )
@@ -31,17 +44,51 @@ function HeaderActions({ project, dispatch }) {
 
 export default function App() {
   const [project, dispatch] = useReducer(projectReducer, initialProject, (init) => {
+    // When auth-gated, always start fresh on step 1 — cloud saves are the
+    // persistence layer, not localStorage. Anonymous mode still uses drafts.
+    if (isSupabaseConfigured) return init
     const draft = loadDraft()
     return draft ? { ...init, ...draft } : init
   })
+  const [openingStatus, setOpeningStatus] = useState(null)
+  const [savesRefreshKey, setSavesRefreshKey] = useState(0)
 
-  useEffect(() => { saveDraft(project) }, [project])
+  useEffect(() => {
+    if (!isSupabaseConfigured) saveDraft(project)
+  }, [project])
+
+  const { user, loading: authLoading } = useAuth()
+
+  async function handleOpenProject(row) {
+    setOpeningStatus('Loading…')
+    try {
+      const patch = await hydrateSavedProject(row, (msg) => setOpeningStatus(msg))
+      dispatch({ type: 'LOAD_PROJECT', patch })
+    } finally {
+      setOpeningStatus(null)
+    }
+  }
+
+  // Bump savesRefreshKey whenever a save happens so the dropdown re-fetches.
+  useEffect(() => {
+    if (project.currentProjectId) setSavesRefreshKey((k) => k + 1)
+  }, [project.currentProjectId])
+
+  if (isSupabaseConfigured && !authLoading && !user) {
+    return <SplashScreen />
+  }
 
   return (
     <div className="app">
       <header className="app-header">
         <h1 className="brand">fursona</h1>
-        <HeaderActions project={project} dispatch={dispatch} />
+        <HeaderActions
+          project={project}
+          dispatch={dispatch}
+          user={user}
+          onOpenProject={handleOpenProject}
+          refreshKey={savesRefreshKey}
+        />
       </header>
       <main className="app-main">
         <div className="step-card">
@@ -54,6 +101,14 @@ export default function App() {
           </div>
         </div>
       </main>
+      {openingStatus && (
+        <div className="opening-overlay">
+          <div className="opening-card">
+            <div className="paw-loader"><span /><span /><span /><span /></div>
+            <p>{openingStatus}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

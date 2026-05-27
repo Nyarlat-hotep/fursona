@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Camera, CaretDown } from '@phosphor-icons/react'
 import { prefetchModel } from '../lib/backgroundRemoval'
+import { isHeic } from '../lib/savedProjects'
 import { shapeToMaskBitmap } from '../lib/shapeMask'
 import { SHAPES } from '../styles/shapes'
 import './UploadStep.css'
@@ -14,6 +15,10 @@ export default function UploadStep({ project, dispatch }) {
 
   function handleFile(file) {
     if (!file) return
+    if (isHeic(file)) {
+      setError('HEIC photos aren’t supported yet — please export your photo as JPEG or PNG first.')
+      return
+    }
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file.')
       return
@@ -29,7 +34,7 @@ export default function UploadStep({ project, dispatch }) {
     setError(null)
     try {
       const bitmap = await shapeToMaskBitmap(shape.Icon)
-      dispatch({ type: 'SET_SHAPE', bitmap })
+      dispatch({ type: 'SET_SHAPE', bitmap, shapeId: shape.id })
       dispatch({ type: 'GOTO', step: 2 })
     } catch (e) {
       setError(`Couldn't load that shape: ${e.message}`)

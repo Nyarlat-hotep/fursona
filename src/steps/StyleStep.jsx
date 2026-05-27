@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowsClockwise, ArrowLeft, CaretDown, Check } from '@phosphor-icons/react'
+import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk } from '@phosphor-icons/react'
+import { useAuth } from '../state/useAuth'
+import { isSupabaseConfigured } from '../lib/supabase'
+import { SAVE_CAP } from '../lib/savedProjects'
+import { useSavedProjects } from '../state/useSavedProjects'
+import SignInModal from '../components/SignInModal'
+import SaveDialog from '../components/SaveDialog'
+import Snackbar from '../components/Snackbar'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
@@ -150,6 +157,14 @@ export default function StyleStep({ project, dispatch }) {
   const [size, setSize] = useState('8x10')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [signInOpen, setSignInOpen] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  const { user } = useAuth()
+  const { count, refresh: refreshSaves } = useSavedProjects(user)
+  const isEditingExisting = Boolean(project.currentProjectId)
+  const atSaveLimit = count >= SAVE_CAP && !isEditingExisting
 
   async function download() {
     setBusy(true)
@@ -334,15 +349,48 @@ export default function StyleStep({ project, dispatch }) {
           <ArrowLeft size={16} weight="bold" />
           <span>Back</span>
         </button>
-        <button
-          className="primary"
-          onClick={download}
-          disabled={busy}
-          type="button"
-        >
-          {busy ? 'Rendering…' : `Download PNG (${size})`}
-        </button>
+        <div className="footer-right">
+          {isSupabaseConfigured && (
+            <button
+              className="secondary"
+              onClick={() => (user ? setSaveOpen(true) : setSignInOpen(true))}
+              disabled={busy || atSaveLimit}
+              title={atSaveLimit ? `${SAVE_CAP} of ${SAVE_CAP} saves used — delete one to save another.` : undefined}
+              type="button"
+            >
+              <FloppyDisk size={16} weight="bold" />
+              <span>{isEditingExisting ? 'Update' : 'Save'}</span>
+            </button>
+          )}
+          <button
+            className="primary"
+            onClick={download}
+            disabled={busy}
+            type="button"
+          >
+            {busy ? 'Rendering…' : `Download PNG (${size})`}
+          </button>
+        </div>
       </div>
+
+      <SignInModal
+        open={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        onSuccess={() => setSaveOpen(true)}
+      />
+      <SaveDialog
+        open={saveOpen && Boolean(user)}
+        project={project}
+        user={user}
+        onClose={() => setSaveOpen(false)}
+        onSaved={(saved) => {
+          const wasUpdate = Boolean(project.currentProjectId)
+          dispatch({ type: 'SET_CURRENT_PROJECT_ID', id: saved.id })
+          refreshSaves()
+          setToast(wasUpdate ? 'Cloud updated' : 'Cloud saved')
+        }}
+      />
+      <Snackbar message={toast} onDismiss={() => setToast(null)} />
     </div>
   )
 }

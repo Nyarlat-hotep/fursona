@@ -313,6 +313,35 @@
   cursor: not-allowed;
 }
 
+.style-step .step-footer .footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.style-step .step-footer .secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d0c8b8;
+  background: #fff;
+  color: #6a4a2c;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.style-step .step-footer .secondary:not(:disabled):hover {
+  background: #faf8f3;
+  border-color: #b8ad95;
+}
+
+.style-step .step-footer .secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .style-step .step-footer .primary {
   padding: 10px 24px;
   border-radius: 8px;

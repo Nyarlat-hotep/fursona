@@ -1,0 +1,152 @@
+.splash {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: #f7f5f0;
+}
+
+.splash-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 36px 32px 28px;
+  box-shadow: 0 16px 48px rgba(40, 24, 8, 0.1);
+  animation: splash-pop-in 0.3s ease;
+}
+
+.splash-brand {
+  margin: 0;
+  font-size: 36px;
+  text-align: center;
+  letter-spacing: 0.01em;
+  color: #6a4a2c;
+}
+
+.splash-tagline {
+  margin: 6px 0 28px;
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.splash-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.splash-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #5a5a5a;
+}
+
+.splash-form input {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d0c8b8;
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+}
+
+.splash-form input:focus {
+  border-color: #6a4a2c;
+}
+
+.splash-error {
+  margin: 0;
+  font-size: 13px;
+  color: #b04030;
+}
+
+.splash-primary {
+  margin-top: 4px;
+  padding: 11px;
+  background: #6a4a2c;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.splash-primary:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.splash-primary:not(:disabled):hover {
+  background: #563a22;
+}
+
+.splash-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #aaa;
+  font-size: 12px;
+  margin: 18px 0;
+}
+
+.splash-divider::before, .splash-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e8e3d8;
+}
+
+.splash-google {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid #d0c8b8;
+  background: #fff;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.splash-google:not(:disabled):hover {
+  background: #faf8f3;
+  border-color: #b8ad95;
+}
+
+.splash-google:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.splash-toggle {
+  margin: 18px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #5a5a5a;
+}
+
+.splash-toggle button {
+  background: transparent;
+  border: 0;
+  color: #6a4a2c;
+  font-weight: 600;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.splash-toggle button:hover { text-decoration: underline; }
+
+@keyframes splash-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

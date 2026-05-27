@@ -97,3 +97,58 @@
 .step-nav button:not(:disabled):hover {
   background: #ede8da;
 }
+
+.opening-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(247, 245, 240, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: opening-fade-in 0.15s ease;
+}
+
+.opening-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(40, 24, 8, 0.15);
+}
+
+.opening-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #5a5a5a;
+}
+
+.opening-card .paw-loader {
+  display: flex;
+  gap: 8px;
+}
+
+.opening-card .paw-loader span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6a4a2c;
+  animation: paw-bounce 1.2s ease-in-out infinite;
+}
+
+.opening-card .paw-loader span:nth-child(2) { animation-delay: 0.15s; }
+.opening-card .paw-loader span:nth-child(3) { animation-delay: 0.3s; }
+.opening-card .paw-loader span:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes paw-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-10px); opacity: 1; }
+}
+
+@keyframes opening-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,0 +1,62 @@
+.user-menu {
+  position: relative;
+}
+
+.user-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: #6a4a2c;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.user-icon-btn:hover {
+  background: #f0ebde;
+}
+
+.user-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #e8e3d8;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(60, 40, 20, 0.12), 0 2px 6px rgba(60, 40, 20, 0.06);
+  padding: 8px;
+  z-index: 50;
+}
+
+.user-menu-email {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #5a5a5a;
+  word-break: break-all;
+  border-bottom: 1px solid #f0ebde;
+  margin-bottom: 4px;
+}
+
+.user-menu-signout {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: #6a4a2c;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.user-menu-signout:hover {
+  background: #faf8f3;
+}

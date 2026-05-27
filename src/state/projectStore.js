@@ -1,5 +1,7 @@
 export const initialProject = {
   step: 0,           // 0=Upload 1=Extract 2=Names 3=Style+Download
+  currentProjectId: null,   // id of the saved cloud row this state was opened from
+  shapeId: null,            // shape preset id when entered via shape picker (null for photo)
   photoBlob: null,
   photoUrl: null,
   maskBitmap: null,
@@ -26,9 +28,24 @@ export function projectReducer(state, action) {
     case 'NEXT': return { ...state, step: Math.min(state.step + 1, MAX_STEP) }
     case 'BACK': return { ...state, step: Math.max(state.step - 1, 0) }
     case 'GOTO': return { ...state, step: Math.max(0, Math.min(action.step, MAX_STEP)) }
-    case 'SET_PHOTO': return { ...state, photoBlob: action.blob, photoUrl: action.url }
+    case 'SET_PHOTO': return {
+      ...state,
+      photoBlob: action.blob,
+      photoUrl: action.url,
+      shapeId: null,
+      currentProjectId: null,
+    }
     case 'SET_MASK': return { ...state, maskBitmap: action.bitmap }
-    case 'SET_SHAPE': return { ...state, photoBlob: null, photoUrl: null, maskBitmap: action.bitmap }
+    case 'SET_SHAPE': return {
+      ...state,
+      photoBlob: null,
+      photoUrl: null,
+      maskBitmap: action.bitmap,
+      shapeId: action.shapeId ?? null,
+      currentProjectId: null,
+    }
+    case 'LOAD_PROJECT': return { ...state, ...action.patch }
+    case 'SET_CURRENT_PROJECT_ID': return { ...state, currentProjectId: action.id }
     case 'ADD_NAME': {
       const text = String(action.text || '').trim()
       if (!text) return state
