@@ -16,9 +16,8 @@ const FILL_TIERS = [
 ]
 
 const ROT_TIERS = [
-  { label: 0,  weight: 75 },
-  { label: 90, weight: 20 },
-  { label: 45, weight: 5 },
+  { label: 0,  weight: 78 },
+  { label: 90, weight: 22 },
 ]
 
 export function assignWords(names, seed, fonts, palette, { fillPasses = 0 } = {}) {

@@ -18,9 +18,7 @@ export async function renderWordCloudToCanvas({
   const h = canvas.height
   const ctx = canvas.getContext('2d')
 
-  if (document.fonts && document.fonts.ready) {
-    await document.fonts.ready
-  }
+  await ensureFontsLoaded()
 
   // Scale mask to render size with nearest-neighbor (no edge smoothing)
   const scaledMask = scaleMaskToCanvas(mask, maskWidth, maskHeight, w, h)
@@ -99,15 +97,8 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
 
   for (const word of sorted) {
     const isRotated = word.rotation === 90
-    const isDiag = word.rotation === 45
-    let boxW = isRotated ? word.mh : word.mw
-    let boxH = isRotated ? word.mw : word.mh
-    if (isDiag) {
-      // 45° rotation: bounding box is the diagonal projection
-      const d = (Math.abs(word.mw) + Math.abs(word.mh)) / Math.SQRT2
-      boxW = d
-      boxH = d
-    }
+    const boxW = isRotated ? word.mh : word.mw
+    const boxH = isRotated ? word.mw : word.mh
 
     let foundCx = null
     let foundCy = null
@@ -163,6 +154,16 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
   }
 
   return result
+}
+
+let _fontsLoadedPromise = null
+async function ensureFontsLoaded() {
+  if (_fontsLoadedPromise) return _fontsLoadedPromise
+  if (!document.fonts || !document.fonts.load) return
+  _fontsLoadedPromise = Promise.all(
+    FONTS.map((f) => document.fonts.load(`${f.weight} 32px "${f.family}"`).catch(() => null)),
+  )
+  return _fontsLoadedPromise
 }
 
 function scaleMaskToCanvas(mask, mw, mh, tw, th) {
