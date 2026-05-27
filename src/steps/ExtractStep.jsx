@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { removeBackground } from '../lib/backgroundRemoval'
 import { binarize, boundingBox, cropMask } from '../lib/mask'
+import MaskEditor from '../components/MaskEditor'
 import './ExtractStep.css'
 
 export default function ExtractStep({ project, dispatch }) {
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
   const [progress, setProgress] = useState(null)
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -46,7 +48,15 @@ export default function ExtractStep({ project, dispatch }) {
 
         dispatch({
           type: 'SET_MASK',
-          bitmap: { mask: cropped, width: bbox.w, height: bbox.h, previewUrl },
+          bitmap: {
+            mask: cropped,
+            width: bbox.w,
+            height: bbox.h,
+            previewUrl,
+            bbox,
+            imageWidth: bmp.width,
+            imageHeight: bmp.height,
+          },
         })
         setStatus('done')
       } catch (e) {
@@ -58,6 +68,20 @@ export default function ExtractStep({ project, dispatch }) {
     })()
     return () => { cancelled = true }
   }, [project.photoBlob, project.maskBitmap, dispatch])
+
+  if (editing && project.maskBitmap?.bbox) {
+    return (
+      <MaskEditor
+        photoUrl={project.photoUrl}
+        bitmap={project.maskBitmap}
+        onCancel={() => setEditing(false)}
+        onCommit={(newBitmap) => {
+          dispatch({ type: 'SET_MASK', bitmap: newBitmap })
+          setEditing(false)
+        }}
+      />
+    )
+  }
 
   return (
     <div className="extract-step">
@@ -94,6 +118,12 @@ export default function ExtractStep({ project, dispatch }) {
       )}
       <div className="actions">
         <button onClick={() => dispatch({ type: 'GOTO', step: 0 })}>Try another photo</button>
+        <button
+          onClick={() => setEditing(true)}
+          disabled={status !== 'done' || !project.maskBitmap?.bbox}
+        >
+          ✎ Refine silhouette
+        </button>
         <button className="primary" onClick={() => dispatch({ type: 'NEXT' })} disabled={status !== 'done'}>
           Looks good
         </button>
