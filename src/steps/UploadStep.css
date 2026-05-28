@@ -113,6 +113,30 @@
   border-color: #6f9adf;
 }
 
+.upload-step .shape-tile svg {
+  transform-origin: 50% 70%;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.upload-step .shape-tile:not(:disabled):hover svg {
+  animation: shape-rock 0.55s ease-in-out 1;
+}
+
+@keyframes shape-rock {
+  0%   { transform: rotate(0deg)   translateZ(0); }
+  20%  { transform: rotate(-12deg) translateZ(0); }
+  50%  { transform: rotate(10deg)  translateZ(0); }
+  80%  { transform: rotate(-6deg)  translateZ(0); }
+  100% { transform: rotate(0deg)   translateZ(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-step .shape-tile:not(:disabled):hover svg {
+    animation: none;
+  }
+}
+
 .upload-step .shape-tile:not(:disabled):active {
   transform: scale(0.97);
 }
