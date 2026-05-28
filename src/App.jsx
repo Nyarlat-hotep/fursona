@@ -12,6 +12,7 @@ import StyleStep from './steps/StyleStep'
 import UserMenu from './components/UserMenu'
 import SavesDropdown from './components/SavesDropdown'
 import SplashScreen from './components/SplashScreen'
+import PasswordResetModal from './components/PasswordResetModal'
 import './App.css'
 
 const STEPS = ['Pick', 'Extract', 'Nicknames', 'Style & Download']
@@ -87,7 +88,7 @@ export default function App() {
     if (!isSupabaseConfigured) saveDraft(project)
   }, [project])
 
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, recovering, clearRecovering } = useAuth()
 
   async function handleOpenProject(row) {
     setOpeningStatus('Loading…')
@@ -131,6 +132,14 @@ export default function App() {
           </div>
         </div>
       </main>
+      <footer className="app-footer">
+        <a href={`${import.meta.env.BASE_URL}legal/privacy.html`} target="_blank" rel="noopener noreferrer">Privacy</a>
+        <span aria-hidden="true">·</span>
+        <a href={`${import.meta.env.BASE_URL}legal/terms.html`} target="_blank" rel="noopener noreferrer">Terms</a>
+        <span aria-hidden="true">·</span>
+        <a href="mailto:tcorneliusart@gmail.com">Contact</a>
+      </footer>
+      <PasswordResetModal open={recovering} onDone={clearRecovering} />
       {openingStatus && (
         <div className="opening-overlay">
           <div className="opening-card">

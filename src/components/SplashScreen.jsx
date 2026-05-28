@@ -5,12 +5,31 @@ import SplashBackground from './SplashBackground'
 import './SplashScreen.css'
 
 export default function SplashScreen() {
-  const { signUp, signInWithPassword, signInWithGoogle } = useAuth()
+  const { signUp, signInWithPassword, signInWithGoogle, resetPassword } = useAuth()
   const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  const [resetStatus, setResetStatus] = useState(null)
+
+  async function handleForgot() {
+    if (!email) {
+      setError('Enter your email above first, then click Forgot password.')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    setResetStatus(null)
+    try {
+      await resetPassword(email)
+      setResetStatus('Sent. Check your email for the reset link.')
+    } catch (err) {
+      setError(err.message || 'Could not send reset email.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function submit(e) {
     e.preventDefault()
@@ -71,9 +90,20 @@ export default function SplashScreen() {
             />
           </label>
           {error && <p className="splash-error">{error}</p>}
+          {resetStatus && <p className="splash-reset-status">{resetStatus}</p>}
           <button type="submit" className="splash-primary" disabled={busy}>
             {busy ? '…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
           </button>
+          {mode === 'signin' && (
+            <button
+              type="button"
+              className="splash-forgot"
+              onClick={handleForgot}
+              disabled={busy}
+            >
+              Forgot password?
+            </button>
+          )}
         </form>
 
         <div className="splash-divider"><span>or</span></div>
@@ -89,6 +119,12 @@ export default function SplashScreen() {
           ) : (
             <>Already have one? <button type="button" onClick={() => setMode('signin')}>Sign in</button></>
           )}
+        </p>
+        <p className="splash-legal">
+          By signing in you agree to our{' '}
+          <a href={`${import.meta.env.BASE_URL}legal/terms.html`} target="_blank" rel="noopener noreferrer">Terms</a>{' '}
+          and{' '}
+          <a href={`${import.meta.env.BASE_URL}legal/privacy.html`} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
         </p>
         </div>
       </div>

@@ -164,6 +164,21 @@
 
 .signin-toggle button:hover { text-decoration: underline; }
 
+.signin-forgot {
+  align-self: flex-end;
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: -4px;
+}
+
+.signin-forgot:hover {
+  text-decoration: underline;
+}
+
 @keyframes signin-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }

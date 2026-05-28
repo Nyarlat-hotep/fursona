@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { UserCircle, SignOut } from '@phosphor-icons/react'
+import { UserCircle, SignOut, Trash } from '@phosphor-icons/react'
 import { useAuth } from '../state/useAuth'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { clearDraft } from '../storage'
 import SignInModal from './SignInModal'
+import ConfirmDialog from './ConfirmDialog'
 import './UserMenu.css'
 
 export default function UserMenu() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, deleteAccount } = useAuth()
   const [open, setOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
@@ -39,6 +42,19 @@ export default function UserMenu() {
     )
   }
 
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      clearDraft()
+      window.location.reload()
+    } catch (e) {
+      setDeleting(false)
+      setConfirmDelete(false)
+      alert(`Could not delete account: ${e.message || e}`)
+    }
+  }
+
   return (
     <div className="user-menu" ref={ref}>
       <button className="user-icon-btn" onClick={() => setOpen((o) => !o)} aria-label="Account" type="button">
@@ -60,8 +76,26 @@ export default function UserMenu() {
             <SignOut size={16} weight="bold" />
             <span>Sign out</span>
           </button>
+          <button
+            type="button"
+            className="user-menu-delete"
+            onClick={() => { setOpen(false); setConfirmDelete(true) }}
+          >
+            <Trash size={16} weight="bold" />
+            <span>Delete account</span>
+          </button>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete your account?"
+        message="This permanently removes your account, all saved clouds, and any photos. This cannot be undone."
+        confirmLabel="Delete forever"
+        destructive
+        busy={deleting}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => !deleting && setConfirmDelete(false)}
+      />
     </div>
   )
 }

@@ -60,3 +60,23 @@
 .user-menu-signout:hover {
   background: #f7faff;
 }
+
+.user-menu-delete {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: #b04030;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  margin-top: 2px;
+}
+
+.user-menu-delete:hover {
+  background: #faf0ee;
+}
