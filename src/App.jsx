@@ -105,7 +105,13 @@ export default function App() {
     if (project.currentProjectId) setSavesRefreshKey((k) => k + 1)
   }, [project.currentProjectId])
 
-  if (isSupabaseConfigured && !authLoading && !user) {
+  // While the session is being restored from storage, render nothing so we
+  // don't flash the main UI before falling back to the splash. Only matters
+  // for ~one frame on initial mount or after a forced reload.
+  if (isSupabaseConfigured && authLoading) {
+    return <div className="app-loading" />
+  }
+  if (isSupabaseConfigured && !user) {
     return <SplashScreen />
   }
 

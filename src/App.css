@@ -262,3 +262,8 @@
   color: #2563eb;
   text-decoration: underline;
 }
+
+.app-loading {
+  min-height: 100vh;
+  background: #f6f9ff;
+}

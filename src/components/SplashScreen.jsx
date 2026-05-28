@@ -2,34 +2,17 @@ import { useState } from 'react'
 import { GoogleLogo } from '@phosphor-icons/react'
 import { useAuth } from '../state/useAuth'
 import SplashBackground from './SplashBackground'
+import ForgotPasswordModal from './ForgotPasswordModal'
 import './SplashScreen.css'
 
 export default function SplashScreen() {
-  const { signUp, signInWithPassword, signInWithGoogle, resetPassword } = useAuth()
+  const { signUp, signInWithPassword, signInWithGoogle } = useAuth()
   const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
-  const [resetStatus, setResetStatus] = useState(null)
-
-  async function handleForgot() {
-    if (!email) {
-      setError('Enter your email above first, then click Forgot password.')
-      return
-    }
-    setBusy(true)
-    setError(null)
-    setResetStatus(null)
-    try {
-      await resetPassword(email)
-      setResetStatus('Sent. Check your email for the reset link.')
-    } catch (err) {
-      setError(err.message || 'Could not send reset email.')
-    } finally {
-      setBusy(false)
-    }
-  }
+  const [forgotOpen, setForgotOpen] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
@@ -90,7 +73,6 @@ export default function SplashScreen() {
             />
           </label>
           {error && <p className="splash-error">{error}</p>}
-          {resetStatus && <p className="splash-reset-status">{resetStatus}</p>}
           <button type="submit" className="splash-primary" disabled={busy}>
             {busy ? '…' : mode === 'signin' ? 'Sign in' : 'Sign up'}
           </button>
@@ -98,7 +80,7 @@ export default function SplashScreen() {
             <button
               type="button"
               className="splash-forgot"
-              onClick={handleForgot}
+              onClick={() => setForgotOpen(true)}
               disabled={busy}
             >
               Forgot password?
@@ -128,6 +110,11 @@ export default function SplashScreen() {
         </p>
         </div>
       </div>
+      <ForgotPasswordModal
+        open={forgotOpen}
+        initialEmail={email}
+        onClose={() => setForgotOpen(false)}
+      />
     </div>
   )
 }
