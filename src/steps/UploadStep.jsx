@@ -49,6 +49,10 @@ export default function UploadStep({ project, dispatch }) {
 
   return (
     <div className="upload-step">
+      <p className="upload-hint">
+        Pick a shape or upload a photo — whatever you choose becomes the
+        silhouette your word cloud is packed into.
+      </p>
       <div className="shapes-section">
         <div className="shapes-grid">
           {SHAPES.map((s) => (

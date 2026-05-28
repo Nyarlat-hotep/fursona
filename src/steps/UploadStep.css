@@ -6,6 +6,14 @@
   width: 100%;
 }
 
+.upload-step .upload-hint {
+  margin: 0;
+  width: 100%;
+  font-size: 14px;
+  color: #5a5a5a;
+  line-height: 1.5;
+}
+
 .drop-zone {
   width: 100%;
   min-height: 320px;
