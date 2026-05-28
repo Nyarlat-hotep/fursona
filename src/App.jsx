@@ -1,5 +1,5 @@
-import { useEffect, useReducer, useState } from 'react'
-import { ArrowCounterClockwise } from '@phosphor-icons/react'
+import { useEffect, useReducer, useRef, useState } from 'react'
+import { ArrowCounterClockwise, List, X } from '@phosphor-icons/react'
 import { initialProject, projectReducer } from './state/projectStore'
 import { loadDraft, saveDraft } from './storage'
 import { useAuth } from './state/useAuth'
@@ -17,26 +17,56 @@ import './App.css'
 const STEPS = ['Pick', 'Extract', 'Nicknames', 'Style & Download']
 
 function HeaderActions({ project, dispatch, user, onOpenProject, refreshKey }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
   const showStartOver =
     project.step > 0 ||
     project.photoUrl ||
     project.shapeId ||
     project.currentProjectId
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onDoc(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    function onKey(e) { if (e.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
   return (
     <div className="header-actions">
-      {showStartOver && (
+      <div className="header-collapsible" ref={menuRef}>
         <button
-          className="start-over"
-          onClick={() => dispatch({ type: 'RESET' })}
           type="button"
+          className="header-menu-toggle"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
         >
-          <ArrowCounterClockwise size={16} weight="bold" />
-          <span>Start over</span>
+          {menuOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
         </button>
-      )}
-      {user && isSupabaseConfigured && (
-        <SavesDropdown user={user} onOpenProject={onOpenProject} refreshKey={refreshKey} />
-      )}
+        <div className={`header-actions-list${menuOpen ? ' is-open' : ''}`}>
+          {showStartOver && (
+            <button
+              className="start-over"
+              onClick={() => { setMenuOpen(false); dispatch({ type: 'RESET' }) }}
+              type="button"
+            >
+              <ArrowCounterClockwise size={16} weight="bold" />
+              <span>Start over</span>
+            </button>
+          )}
+          {user && isSupabaseConfigured && (
+            <SavesDropdown user={user} onOpenProject={onOpenProject} refreshKey={refreshKey} />
+          )}
+        </div>
+      </div>
       <UserMenu />
     </div>
   )

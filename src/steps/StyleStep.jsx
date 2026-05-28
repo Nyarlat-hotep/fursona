@@ -162,6 +162,19 @@ export default function StyleStep({ project, dispatch }) {
   const [saveOpen, setSaveOpen] = useState(false)
   const [donationOpen, setDonationOpen] = useState(false)
   const [toast, setToast] = useState(null)
+  const [canvasWidth, setCanvasWidth] = useState(580)
+  const canvasWrapRef = useRef(null)
+
+  useEffect(() => {
+    const el = canvasWrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      const w = Math.floor(entry.contentRect.width)
+      if (w > 0) setCanvasWidth(Math.min(580, w))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const { user } = useAuth()
   const { count, refresh: refreshSaves } = useSavedProjects(user)
@@ -384,7 +397,9 @@ export default function StyleStep({ project, dispatch }) {
             setStyle={setStyle}
             onRegenerate={() => dispatch({ type: 'REGENERATE' })}
           />
-          <WordCloudCanvas project={project} width={580} />
+          <div className="preview-canvas-wrap" ref={canvasWrapRef}>
+            <WordCloudCanvas project={project} width={canvasWidth} />
+          </div>
         </section>
       </div>
 

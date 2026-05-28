@@ -10,9 +10,13 @@ export default function WordCloudCanvas({ project, width }) {
     if (!project.maskBitmap || project.names.length === 0) return
     const { mask, width: mw, height: mh } = project.maskBitmap
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    // Square canvas so silhouette has room to move horizontally and vertically.
+    // Canvas aspect follows the silhouette bbox so tall/narrow shapes (e.g. a
+    // standing cat) don't leave large empty bands on the sides. Clamp to a
+    // sensible range so extreme aspects don't make the canvas absurdly tall.
+    const rawAspect = mh > 0 ? mw / mh : 1
+    const aspect = Math.max(0.6, Math.min(1.6, rawAspect))
     const cssW = width
-    const cssH = width
+    const cssH = Math.round(width / aspect)
     const renderW = Math.round(cssW * dpr)
     const renderH = Math.round(cssH * dpr)
 
