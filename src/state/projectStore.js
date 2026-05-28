@@ -8,14 +8,16 @@ export const initialProject = {
   names: [],
   style: {
     backgroundType: 'color',
-    backgroundValue: '#f7f5f0',
+    backgroundValue: '#eef4ff',
     patternScale: 1,
     patternOpacity: 1,
     paletteId: 'mono',
     customPaletteColors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'],
     alignH: 'center',     // 'left' | 'center' | 'right'
     alignV: 'middle',     // 'top'  | 'middle' | 'bottom'
-    silhouetteMode: 'tint', // 'tint' | 'none'
+    silhouetteMode: 'tint',     // 'tint' | 'none'
+    silhouetteOpacity: 0.5,     // 0..1 multiplier on the tint fill alpha
+    silhouetteFeather: 0,       // 0..4 px blur applied to silhouette stencil edges
   },
   seed: 1,
   lastExportedAt: null,

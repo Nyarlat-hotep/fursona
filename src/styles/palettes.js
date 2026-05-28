@@ -1,10 +1,10 @@
 export const PALETTES = [
-  { id: 'mono',   label: 'Mono',   colors: ['#111', '#333', '#555'] },
-  { id: 'warm',   label: 'Warm',   colors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'] },
-  { id: 'cool',   label: 'Cool',   colors: ['#1f3a5f', '#3d7068', '#8eb89e', '#0b1a2a'] },
-  { id: 'pastel', label: 'Pastel', colors: ['#d8a7b1', '#b6e2d3', '#f6d6ad', '#a0c4ff'] },
-  { id: 'ink',    label: 'Ink',    colors: ['#1a1a1a'] },
-  { id: 'custom', label: 'Custom', custom: true },
+  { id: 'mono',   label: 'Mono',   colors: ['#111', '#333', '#555'],                              bg: '#f4f4f5' },
+  { id: 'warm',   label: 'Warm',   colors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'],          bg: '#fbf2e6' },
+  { id: 'cool',   label: 'Cool',   colors: ['#1f3a5f', '#3d7068', '#8eb89e', '#0b1a2a'],          bg: '#eaf1f4' },
+  { id: 'pastel', label: 'Pastel', colors: ['#d8a7b1', '#b6e2d3', '#f6d6ad', '#a0c4ff'],          bg: '#fbf5f3' },
+  { id: 'ink',    label: 'Ink',    colors: ['#1a1a1a'],                                            bg: '#f4f4f5' },
+  { id: 'custom', label: 'Custom', custom: true,                                                   bg: '#eef4ff' },
 ]
 
 export const DEFAULT_CUSTOM_COLORS = ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b']

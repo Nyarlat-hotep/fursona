@@ -1,7 +1,7 @@
 .signin-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 14, 6, 0.4);
+  background: rgba(10, 20, 40, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -16,7 +16,7 @@
   background: #fff;
   border-radius: 12px;
   padding: 24px 24px 20px;
-  box-shadow: 0 12px 40px rgba(40, 24, 8, 0.2);
+  box-shadow: 0 12px 40px rgba(20, 35, 60, 0.2);
   animation: signin-pop-in 0.15s ease;
 }
 
@@ -29,7 +29,7 @@
   border: 0;
   background: transparent;
   border-radius: 6px;
-  color: #6a4a2c;
+  color: #2563eb;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -37,7 +37,7 @@
 }
 
 .signin-close:hover {
-  background: #f0ebde;
+  background: #dbe9ff;
 }
 
 .signin-modal h2 {
@@ -68,14 +68,14 @@
 .signin-form input {
   padding: 10px 12px;
   font-size: 14px;
-  border: 1px solid #d0c8b8;
+  border: 1px solid #9bbeed;
   border-radius: 8px;
   background: #fff;
   outline: none;
 }
 
 .signin-form input:focus {
-  border-color: #6a4a2c;
+  border-color: #2563eb;
 }
 
 .signin-error {
@@ -87,7 +87,7 @@
 .signin-primary {
   margin-top: 4px;
   padding: 10px;
-  background: #6a4a2c;
+  background: #2563eb;
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -101,7 +101,7 @@
 }
 
 .signin-primary:not(:disabled):hover {
-  background: #563a22;
+  background: #1d4ed8;
 }
 
 .signin-divider {
@@ -117,7 +117,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #e8e3d8;
+  background: #bfd5f5;
 }
 
 .signin-google {
@@ -127,17 +127,17 @@
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  border: 1px solid #d0c8b8;
+  border: 1px solid #9bbeed;
   background: #fff;
   border-radius: 8px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #0f172a;
   cursor: pointer;
 }
 
 .signin-google:not(:disabled):hover {
-  background: #faf8f3;
-  border-color: #b8ad95;
+  background: #f7faff;
+  border-color: #6f9adf;
 }
 
 .signin-google:disabled {
@@ -155,7 +155,7 @@
 .signin-toggle button {
   background: transparent;
   border: 0;
-  color: #6a4a2c;
+  color: #2563eb;
   font-weight: 600;
   font: inherit;
   cursor: pointer;

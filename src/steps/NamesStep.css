@@ -15,14 +15,14 @@
 .names-step input[type='text'] {
   padding: 12px 14px;
   font-size: 16px;
-  border: 1px solid #d0c8b8;
+  border: 1px solid #9bbeed;
   border-radius: 8px;
   background: #fff;
   outline: none;
 }
 
 .names-step input[type='text']:focus {
-  border-color: #6a4a2c;
+  border-color: #2563eb;
 }
 
 .names-step .chips {
@@ -41,8 +41,8 @@
   gap: 6px;
   padding: 6px 6px 6px 12px;
   border-radius: 999px;
-  background: #ede8da;
-  color: #1a1a1a;
+  background: #cfe0ff;
+  color: #0f172a;
   font-size: 14px;
 }
 
@@ -54,21 +54,21 @@
   justify-content: center;
   border: 0;
   border-radius: 50%;
-  background: #d0c8b8;
-  color: #5a4530;
+  background: #9bbeed;
+  color: #2d52bf;
   padding: 0;
 }
 
 .names-step .chip button:hover {
-  background: #b8ad95;
+  background: #6f9adf;
 }
 
 .names-step .step-footer {
   align-self: stretch;
   margin: 8px -32px -32px;
   padding: 16px 32px;
-  border-top: 1px solid #e8e3d8;
-  background: #faf8f3;
+  border-top: 1px solid #bfd5f5;
+  background: #f7faff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,21 +83,21 @@
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: #6a4a2c;
+  color: #2563eb;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .names-step .step-footer .back:hover {
-  background: #f0ebde;
+  background: #dbe9ff;
 }
 
 .names-step .step-footer .primary {
   padding: 10px 24px;
   border-radius: 8px;
-  border: 1px solid #6a4a2c;
-  background: #6a4a2c;
+  border: 1px solid #2563eb;
+  background: #2563eb;
   color: #fff;
   font-weight: 600;
 }
@@ -108,5 +108,5 @@
 }
 
 .names-step .step-footer .primary:not(:disabled):hover {
-  background: #563a22;
+  background: #1d4ed8;
 }

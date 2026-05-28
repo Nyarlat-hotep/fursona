@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { GoogleLogo } from '@phosphor-icons/react'
 import { useAuth } from '../state/useAuth'
+import SplashBackground from './SplashBackground'
 import './SplashScreen.css'
 
 export default function SplashScreen() {
@@ -38,7 +39,11 @@ export default function SplashScreen() {
 
   return (
     <div className="splash">
-      <div className="splash-card">
+      <aside className="splash-pane-left">
+        <SplashBackground />
+      </aside>
+      <div className="splash-pane-right">
+        <div className="splash-card">
         <h1 className="splash-brand">fursona</h1>
         <p className="splash-tagline">Turn your pet's nicknames into a printable word cloud shaped like them.</p>
 
@@ -85,6 +90,7 @@ export default function SplashScreen() {
             <>Already have one? <button type="button" onClick={() => setMode('signin')}>Sign in</button></>
           )}
         </p>
+        </div>
       </div>
     </div>
   )

@@ -12,7 +12,10 @@ import { FONTS } from '../styles/fonts'
  * (b) doesn't overlap an already-placed word.
  */
 export async function renderWordCloudToCanvas({
-  canvas, mask, maskWidth, maskHeight, names, seed, style, palette,
+  canvas, mask, maskWidth, maskHeight,
+  silhouetteImageUrl, silhouetteSvg, silhouetteBbox,
+  silhouetteSourceWidth, silhouetteSourceHeight,
+  names, seed, style, palette,
 }) {
   const w = canvas.width
   const h = canvas.height
@@ -85,7 +88,7 @@ export async function renderWordCloudToCanvas({
       }
       ctx.fillStyle = pattern
     } else {
-      ctx.fillStyle = '#f7f5f0'
+      ctx.fillStyle = '#eef4ff'
     }
     ctx.fillRect(0, 0, w, h)
     // Apply pattern opacity by overlaying cream — since the pattern's own
@@ -94,12 +97,12 @@ export async function renderWordCloudToCanvas({
     if (opacity < 1) {
       ctx.save()
       ctx.globalAlpha = 1 - opacity
-      ctx.fillStyle = '#f7f5f0'
+      ctx.fillStyle = '#eef4ff'
       ctx.fillRect(0, 0, w, h)
       ctx.restore()
     }
   } else {
-    ctx.fillStyle = style.backgroundValue || '#f7f5f0'
+    ctx.fillStyle = style.backgroundValue || '#eef4ff'
     ctx.fillRect(0, 0, w, h)
   }
 
@@ -108,11 +111,33 @@ export async function renderWordCloudToCanvas({
   ctx.translate(offsetX, offsetY)
 
   if ((style.silhouetteMode || 'tint') === 'tint') {
-    const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
-    const fillColor = usingPattern
-      ? '#f7f5f0' // opaque cream so the pattern doesn't show through behind words
-      : withAlpha(palette.colors[0] || '#1a1a1a', 0.04)
-    paintSilhouetteFill(ctx, scaledMask, w, h, fillColor)
+    const opacity = Math.max(0, Math.min(1, style.silhouetteOpacity ?? 1))
+    if (opacity > 0) {
+      const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
+      const fillColor = usingPattern
+        ? withAlpha('#eef4ff', opacity)
+        : withAlpha(palette.colors[0] || '#1a1a1a', 0.15 * opacity)
+      // Feather is specified in canvas pixels at preview resolution (~580px wide).
+      // Scale to the actual render width so exports get proportional smoothing.
+      const featherCss = Math.max(0, Math.min(4, style.silhouetteFeather ?? 0))
+      const featherPx = featherCss * (w / 580)
+      const svgStencil = silhouetteSvg && silhouetteBbox
+        ? await rasterizeSilhouetteSvg(silhouetteSvg, silhouetteBbox, silhouetteSourceWidth, silhouetteSourceHeight, silW, silH)
+        : null
+      if (svgStencil) {
+        paintSilhouetteFromImage(
+          ctx, svgStencil.img, centeredSilX, centeredSilY, silW, silH, fillColor, featherPx,
+          svgStencil.sx, svgStencil.sy, svgStencil.sw, svgStencil.sh,
+        )
+      } else {
+        const stencil = silhouetteImageUrl ? await loadImage(silhouetteImageUrl) : null
+        if (stencil) {
+          paintSilhouetteFromImage(ctx, stencil, centeredSilX, centeredSilY, silW, silH, fillColor, featherPx)
+        } else {
+          paintSilhouetteFill(ctx, scaledMask, w, h, fillColor)
+        }
+      }
+    }
   }
 
   for (const p of placements) {
@@ -221,8 +246,8 @@ async function ensureFontsLoaded() {
 
 const _patternCache = new Map()
 async function loadPattern(src, paletteColors) {
-  const primary = withHexAlpha(paletteColors?.[0] || '#d0c8b8', 0.4)
-  const secondary = withHexAlpha(paletteColors?.[1] || paletteColors?.[0] || '#e8e3d8', 0.22)
+  const primary = withHexAlpha(paletteColors?.[0] || '#b3c5dc', 0.4)
+  const secondary = withHexAlpha(paletteColors?.[1] || paletteColors?.[0] || '#cfdae8', 0.22)
   const cacheKey = `${src}|${primary}|${secondary}`
   if (_patternCache.has(cacheKey)) return _patternCache.get(cacheKey)
 
@@ -285,6 +310,54 @@ function loadImage(src) {
     i.onerror = () => resolve(null)
     i.src = src
   })
+}
+
+function paintSilhouetteFromImage(ctx, img, x, y, w, h, color, featherPx, sx, sy, sw, sh) {
+  // Use the source image's alpha channel as a stencil, then recolor via
+  // source-in. This preserves the SVG/cutout's anti-aliased edges instead of
+  // staircasing them through the binary mask. Optional feather blurs the alpha
+  // edge before recoloring so jagged binary masks (e.g. from the brush editor)
+  // get smoothed.
+  const off = document.createElement('canvas')
+  off.width = Math.max(1, Math.ceil(w))
+  off.height = Math.max(1, Math.ceil(h))
+  const octx = off.getContext('2d')
+  octx.imageSmoothingEnabled = true
+  octx.imageSmoothingQuality = 'high'
+  if (featherPx && featherPx > 0) octx.filter = `blur(${featherPx}px)`
+  if (sx !== undefined) {
+    octx.drawImage(img, sx, sy, sw, sh, 0, 0, off.width, off.height)
+  } else {
+    octx.drawImage(img, 0, 0, off.width, off.height)
+  }
+  octx.filter = 'none'
+  octx.globalCompositeOperation = 'source-in'
+  octx.fillStyle = color
+  octx.fillRect(0, 0, off.width, off.height)
+  ctx.drawImage(off, x, y, w, h)
+}
+
+async function rasterizeSilhouetteSvg(svgMarkup, bbox, sourceW, sourceH, targetW, targetH) {
+  // Re-rasterize the icon SVG at ~2× the display size so the stencil has
+  // pixels to spare even on hi-DPI canvases / print exports. Then crop to the
+  // bbox region — matches the word-packing mask's coordinate space.
+  const supersample = 2
+  const scale = (supersample * targetW) / bbox.w
+  const fullW = Math.max(1, Math.ceil(sourceW * scale))
+  const fullH = Math.max(1, Math.ceil(sourceH * scale))
+  const sized = svgMarkup.replace(/<svg([^>]*)>/, (_, attrs) => {
+    const stripped = attrs.replace(/\s(width|height)="[^"]*"/g, '')
+    return `<svg${stripped} width="${fullW}" height="${fullH}">`
+  })
+  const img = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(sized)}`)
+  if (!img) return null
+  return {
+    img,
+    sx: bbox.x * scale,
+    sy: bbox.y * scale,
+    sw: bbox.w * scale,
+    sh: bbox.h * scale,
+  }
 }
 
 function paintSilhouetteFill(ctx, scaledMask, w, h, color) {

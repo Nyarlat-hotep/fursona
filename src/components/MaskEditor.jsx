@@ -25,6 +25,7 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
   const [cursorPos, setCursorPos] = useState(null)
   const [photoReady, setPhotoReady] = useState(false)
   const [undoDepth, setUndoDepth] = useState(0)
+  const [committing, setCommitting] = useState(false)
 
   const maskRef = useRef(null)
   const undoRef = useRef([])
@@ -228,6 +229,20 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
     queueRender()
   }
 
+  function handleDone() {
+    if (committing) return
+    setCommitting(true)
+    // Yield two frames so the spinner state actually paints before the
+    // bounding-box scan + toDataURL block the main thread.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try {
+        commit()
+      } finally {
+        setCommitting(false)
+      }
+    }))
+  }
+
   function commit() {
     const mask = maskRef.current
     let minX = imageWidth, minY = imageHeight, maxX = -1, maxY = -1
@@ -301,7 +316,7 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
           </button>
         </div>
         <label className="brush-size">
-          Brush
+          Brush size
           <input
             type="range"
             min="6"
@@ -333,8 +348,17 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
       </div>
 
       <div className="actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="button" className="primary" onClick={commit}>Done</button>
+        <button type="button" onClick={onCancel} disabled={committing}>Cancel</button>
+        <button type="button" className="primary" onClick={handleDone} disabled={committing}>
+          {committing ? (
+            <>
+              <span className="mask-editor-spinner" aria-hidden="true" />
+              <span>Finishing…</span>
+            </>
+          ) : (
+            'Done'
+          )}
+        </button>
       </div>
     </div>
   )

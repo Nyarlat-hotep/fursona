@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import { Camera, CaretDown } from '@phosphor-icons/react'
-import { prefetchModel } from '../lib/backgroundRemoval'
 import { isHeic } from '../lib/savedProjects'
 import { shapeToMaskBitmap } from '../lib/shapeMask'
 import { SHAPES } from '../styles/shapes'
@@ -12,6 +11,7 @@ export default function UploadStep({ project, dispatch }) {
   const [error, setError] = useState(null)
   const [tipsOpen, setTipsOpen] = useState(false)
   const [loadingShape, setLoadingShape] = useState(null)
+  const recentDropRef = useRef(false)
 
   function handleFile(file) {
     if (!file) return
@@ -44,15 +44,42 @@ export default function UploadStep({ project, dispatch }) {
 
   return (
     <div className="upload-step">
+      <div className="shapes-section">
+        <div className="shapes-grid">
+          {SHAPES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={`shape-tile ${loadingShape === s.id ? 'is-loading' : ''}`}
+              onClick={() => pickShape(s)}
+              disabled={loadingShape !== null}
+              title={s.label}
+              aria-label={s.label}
+            >
+              <s.Icon size={36} weight="fill" />
+              <span className="shape-label">{s.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="shapes-divider"><span>or upload your own image</span></div>
+
       <div
         className={`drop-zone ${dragOver ? 'is-over' : ''} ${project.photoUrl ? 'has-photo' : ''}`}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); prefetchModel() }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {
-          e.preventDefault(); setDragOver(false)
+          e.preventDefault()
+          setDragOver(false)
+          recentDropRef.current = true
+          setTimeout(() => { recentDropRef.current = false }, 500)
           handleFile(e.dataTransfer.files?.[0])
         }}
-        onClick={() => { prefetchModel(); inputRef.current?.click() }}
+        onClick={() => {
+          if (recentDropRef.current) return
+          inputRef.current?.click()
+        }}
       >
         {project.photoUrl ? (
           <img src={project.photoUrl} alt="Uploaded pet" className="preview" />
@@ -97,26 +124,6 @@ export default function UploadStep({ project, dispatch }) {
               <li>Side or 3/4 profiles often look better than head-on shots</li>
             </ul>
           </div>
-        </div>
-      </div>
-
-      <div className="shapes-section">
-        <div className="shapes-divider"><span>or pick a shape</span></div>
-        <div className="shapes-grid">
-          {SHAPES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={`shape-tile ${loadingShape === s.id ? 'is-loading' : ''}`}
-              onClick={() => pickShape(s)}
-              disabled={loadingShape !== null}
-              title={s.label}
-              aria-label={s.label}
-            >
-              <s.Icon size={36} weight="fill" />
-              <span className="shape-label">{s.label}</span>
-            </button>
-          ))}
         </div>
       </div>
 

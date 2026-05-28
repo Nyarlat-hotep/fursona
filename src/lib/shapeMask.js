@@ -51,5 +51,6 @@ export async function shapeToMaskBitmap(Icon) {
     bbox,
     imageWidth: RASTER_SIZE,
     imageHeight: RASTER_SIZE,
+    svgMarkup: svg,
   }
 }

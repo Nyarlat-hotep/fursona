@@ -24,7 +24,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #6a4a2c;
+  background: #2563eb;
   animation: paw-bounce 1.2s ease-in-out infinite;
 }
 
@@ -40,7 +40,7 @@
 .extract-step .loading-text {
   margin: 4px 0 0;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #0f172a;
 }
 
 .extract-step .loading-sub {
@@ -54,14 +54,14 @@
 .extract-step .progress-bar {
   width: 240px;
   height: 8px;
-  background: #ede8da;
+  background: #cfe0ff;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .extract-step .progress-fill {
   height: 100%;
-  background: #6a4a2c;
+  background: #2563eb;
   transition: width 0.2s ease;
 }
 
@@ -97,7 +97,7 @@
   max-height: 280px;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid #e8e3d8;
+  border: 1px solid #bfd5f5;
 }
 
 .extract-step .thumb.checker {
@@ -116,14 +116,14 @@
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: #6a4a2c;
+  color: #2563eb;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .extract-step .refine-link:not(:disabled):hover {
-  background: #f0ebde;
+  background: #dbe9ff;
 }
 
 .extract-step .refine-link:disabled {
@@ -135,8 +135,8 @@
   align-self: stretch;
   margin: auto -32px -32px;
   padding: 16px 32px;
-  border-top: 1px solid #e8e3d8;
-  background: #faf8f3;
+  border-top: 1px solid #bfd5f5;
+  background: #f7faff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -151,21 +151,21 @@
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: #6a4a2c;
+  color: #2563eb;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .extract-step .step-footer .back:hover {
-  background: #f0ebde;
+  background: #dbe9ff;
 }
 
 .extract-step .step-footer .primary {
   padding: 10px 24px;
   border-radius: 8px;
-  border: 1px solid #6a4a2c;
-  background: #6a4a2c;
+  border: 1px solid #2563eb;
+  background: #2563eb;
   color: #fff;
   font-weight: 600;
 }
@@ -176,5 +176,5 @@
 }
 
 .extract-step .step-footer .primary:not(:disabled):hover {
-  background: #563a22;
+  background: #1d4ed8;
 }

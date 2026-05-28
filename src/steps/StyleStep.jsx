@@ -7,6 +7,7 @@ import { useSavedProjects } from '../state/useSavedProjects'
 import SignInModal from '../components/SignInModal'
 import SaveDialog from '../components/SaveDialog'
 import Snackbar from '../components/Snackbar'
+import DonationModal from '../components/DonationModal'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
@@ -159,6 +160,7 @@ export default function StyleStep({ project, dispatch }) {
   const [error, setError] = useState(null)
   const [signInOpen, setSignInOpen] = useState(false)
   const [saveOpen, setSaveOpen] = useState(false)
+  const [donationOpen, setDonationOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
   const { user } = useAuth()
@@ -166,7 +168,7 @@ export default function StyleStep({ project, dispatch }) {
   const isEditingExisting = Boolean(project.currentProjectId)
   const atSaveLimit = count >= SAVE_CAP && !isEditingExisting
 
-  async function download() {
+  async function runDownload() {
     setBusy(true)
     setError(null)
     try {
@@ -179,6 +181,7 @@ export default function StyleStep({ project, dispatch }) {
       a.click()
       document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setDonationOpen(false)
     } catch (e) {
       setError(`Could not render at ${size}. Try a smaller size. (${e.message})`)
     } finally {
@@ -197,7 +200,10 @@ export default function StyleStep({ project, dispatch }) {
               <input
                 type="radio"
                 checked={backgroundType === 'color'}
-                onChange={() => setStyle({ backgroundType: 'color', backgroundValue: '#f7f5f0' })}
+                onChange={() => {
+                  const currentPalette = PALETTES.find((p) => p.id === paletteId)
+                  setStyle({ backgroundType: 'color', backgroundValue: currentPalette?.bg || '#eef4ff' })
+                }}
               />
               Color
             </label>
@@ -284,6 +290,38 @@ export default function StyleStep({ project, dispatch }) {
               </label>
             ))}
           </div>
+          {silhouetteMode === 'tint' && (
+            <>
+              <label className="pattern-scale">
+                <span className="pattern-scale-label">
+                  <span>Fill opacity</span>
+                  <span className="pattern-scale-value">{Math.round((project.style.silhouetteOpacity ?? 1) * 100)}%</span>
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={project.style.silhouetteOpacity ?? 1}
+                  onChange={(e) => setStyle({ silhouetteOpacity: parseFloat(e.target.value) })}
+                />
+              </label>
+              <label className="pattern-scale">
+                <span className="pattern-scale-label">
+                  <span>Smooth edges</span>
+                  <span className="pattern-scale-value">{(project.style.silhouetteFeather ?? 0).toFixed(1)}px</span>
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="4"
+                  step="0.1"
+                  value={project.style.silhouetteFeather ?? 0}
+                  onChange={(e) => setStyle({ silhouetteFeather: parseFloat(e.target.value) })}
+                />
+              </label>
+            </>
+          )}
         </fieldset>
 
         <fieldset>
@@ -293,7 +331,13 @@ export default function StyleStep({ project, dispatch }) {
               <input
                 type="radio"
                 checked={paletteId === p.id}
-                onChange={() => setStyle({ paletteId: p.id })}
+                onChange={() => {
+                  const patch = { paletteId: p.id }
+                  if (project.style.backgroundType === 'color' && p.bg) {
+                    patch.backgroundValue = p.bg
+                  }
+                  setStyle(patch)
+                }}
               />
               <span className="palette-name">{p.label}</span>
               {p.custom ? (
@@ -364,7 +408,7 @@ export default function StyleStep({ project, dispatch }) {
           )}
           <button
             className="primary"
-            onClick={download}
+            onClick={() => setDonationOpen(true)}
             disabled={busy}
             type="button"
           >
@@ -389,6 +433,12 @@ export default function StyleStep({ project, dispatch }) {
           refreshSaves()
           setToast(wasUpdate ? 'Cloud updated' : 'Cloud saved')
         }}
+      />
+      <DonationModal
+        open={donationOpen}
+        busy={busy}
+        onDownload={runDownload}
+        onSkip={() => setDonationOpen(false)}
       />
       <Snackbar message={toast} onDismiss={() => setToast(null)} />
     </div>

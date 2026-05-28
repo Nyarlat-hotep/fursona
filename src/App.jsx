@@ -14,7 +14,7 @@ import SavesDropdown from './components/SavesDropdown'
 import SplashScreen from './components/SplashScreen'
 import './App.css'
 
-const STEPS = ['Upload', 'Extract', 'Nicknames', 'Style & Download']
+const STEPS = ['Pick', 'Extract', 'Nicknames', 'Style & Download']
 
 function HeaderActions({ project, dispatch, user, onOpenProject, refreshKey }) {
   const showStartOver =

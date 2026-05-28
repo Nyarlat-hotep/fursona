@@ -1,0 +1,22 @@
+.splash-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 32px;
+}
+
+.splash-showcase-cloud {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 1 / 1;
+}
+
+.splash-showcase-cloud canvas {
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

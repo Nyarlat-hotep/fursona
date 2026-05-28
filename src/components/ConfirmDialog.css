@@ -1,7 +1,7 @@
 .confirm-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 14, 6, 0.4);
+  background: rgba(10, 20, 40, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,14 +15,14 @@
   background: #fff;
   border-radius: 12px;
   padding: 22px 24px 18px;
-  box-shadow: 0 12px 40px rgba(40, 24, 8, 0.2);
+  box-shadow: 0 12px 40px rgba(20, 35, 60, 0.2);
   animation: confirm-pop-in 0.15s ease;
 }
 
 .confirm-dialog h3 {
   margin: 0 0 6px;
   font-size: 17px;
-  color: #1a1a1a;
+  color: #0f172a;
 }
 
 .confirm-message {
@@ -40,16 +40,16 @@
 
 .confirm-cancel {
   padding: 9px 16px;
-  border: 1px solid #d0c8b8;
+  border: 1px solid #9bbeed;
   background: #fff;
   border-radius: 8px;
-  color: #1a1a1a;
+  color: #0f172a;
   cursor: pointer;
   font-weight: 500;
 }
 
 .confirm-cancel:not(:disabled):hover {
-  background: #faf8f3;
+  background: #f7faff;
 }
 
 .confirm-cancel:disabled {
@@ -59,8 +59,8 @@
 
 .confirm-primary {
   padding: 9px 18px;
-  border: 1px solid #6a4a2c;
-  background: #6a4a2c;
+  border: 1px solid #2563eb;
+  background: #2563eb;
   color: #fff;
   border-radius: 8px;
   font-weight: 600;
@@ -68,7 +68,7 @@
 }
 
 .confirm-primary:not(:disabled):hover {
-  background: #563a22;
+  background: #1d4ed8;
 }
 
 .confirm-primary.destructive {

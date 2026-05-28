@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid #e8e3d8;
+  border-bottom: 1px solid #bfd5f5;
 }
 
 .brand {
@@ -30,15 +30,15 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 6px;
-  border: 1px solid #d0c8b8;
+  border: 1px solid #9bbeed;
   background: #fff;
-  color: #6a4a2c;
+  color: #2563eb;
   font-size: 13px;
   font-weight: 600;
 }
 
 .start-over:hover {
-  background: #f0ebde;
+  background: #dbe9ff;
 }
 
 .app-main {
@@ -53,7 +53,7 @@
   width: 100%;
   max-width: 960px;
   background: #fff;
-  border: 1px solid #e8e3d8;
+  border: 1px solid #bfd5f5;
   border-radius: 12px;
   padding: 32px;
   display: flex;
@@ -85,8 +85,8 @@
 .step-nav button {
   padding: 10px 20px;
   border-radius: 8px;
-  border: 1px solid #d0c8b8;
-  background: #f7f5f0;
+  border: 1px solid #9bbeed;
+  background: #eef4ff;
 }
 
 .step-nav button:disabled {
@@ -95,13 +95,13 @@
 }
 
 .step-nav button:not(:disabled):hover {
-  background: #ede8da;
+  background: #cfe0ff;
 }
 
 .opening-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(247, 245, 240, 0.85);
+  background: rgba(240, 244, 250, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +117,7 @@
   padding: 24px 40px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(40, 24, 8, 0.15);
+  box-shadow: 0 12px 32px rgba(20, 35, 60, 0.15);
 }
 
 .opening-card p {
@@ -135,7 +135,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #6a4a2c;
+  background: #2563eb;
   animation: paw-bounce 1.2s ease-in-out infinite;
 }
 
