@@ -23,6 +23,11 @@ export default function UploadStep({ project, dispatch }) {
       setError('Please upload an image file.')
       return
     }
+    const MAX_BYTES = 20 * 1024 * 1024 // 20 MB
+    if (file.size > MAX_BYTES) {
+      setError(`That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — please use one under 20 MB.`)
+      return
+    }
     setError(null)
     const url = URL.createObjectURL(file)
     dispatch({ type: 'SET_PHOTO', blob: file, url })

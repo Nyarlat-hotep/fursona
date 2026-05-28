@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PencilSimple, ArrowLeft } from '@phosphor-icons/react'
 import { removeBackground } from '../lib/backgroundRemoval'
-import { binarize, boundingBox, cropMask } from '../lib/mask'
 import MaskEditor from '../components/MaskEditor'
 import './ExtractStep.css'
 
@@ -23,51 +22,41 @@ export default function ExtractStep({ project, dispatch }) {
     }
     setStatus('working')
     setProgress(null)
+    let pending = null
     ;(async () => {
       try {
-        const cutoutBlob = await removeBackground(project.photoBlob, (key, current, total) => {
+        pending = removeBackground(project.photoBlob, (key, current, total) => {
           if (!cancelled && total > 0) setProgress({ key, current, total })
         })
+        const result = await pending
         if (cancelled) return
-        const bmp = await createImageBitmap(cutoutBlob)
-        const c = document.createElement('canvas')
-        c.width = bmp.width
-        c.height = bmp.height
-        const ctx = c.getContext('2d')
-        ctx.drawImage(bmp, 0, 0)
-        const imgData = ctx.getImageData(0, 0, bmp.width, bmp.height)
-        const fullMask = binarize(imgData, 64)
-        const bbox = boundingBox(fullMask, bmp.width, bmp.height)
-        if (!bbox) throw new Error('No silhouette detected. Try a clearer photo.')
 
-        const cropped = cropMask(fullMask, bmp.width, bbox)
-        const previewCanvas = document.createElement('canvas')
-        previewCanvas.width = bbox.w
-        previewCanvas.height = bbox.h
-        previewCanvas.getContext('2d').drawImage(c, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, bbox.w, bbox.h)
-        const previewUrl = previewCanvas.toDataURL('image/png')
-
+        const previewUrl = URL.createObjectURL(result.previewBlob)
         dispatch({
           type: 'SET_MASK',
           bitmap: {
-            mask: cropped,
-            width: bbox.w,
-            height: bbox.h,
+            mask: result.mask,
+            width: result.width,
+            height: result.height,
             previewUrl,
-            bbox,
-            imageWidth: bmp.width,
-            imageHeight: bmp.height,
+            bbox: result.bbox,
+            imageWidth: result.imageWidth,
+            imageHeight: result.imageHeight,
           },
         })
         setStatus('done')
       } catch (e) {
+        if (e?.aborted) return // user navigated away — silent
         if (!cancelled) {
           setStatus('error')
           setError(e.message || 'Background removal failed.')
         }
       }
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      pending?.cancel?.()
+    }
   }, [project.photoBlob, project.maskBitmap, dispatch])
 
   if (editing && project.maskBitmap?.bbox) {
@@ -106,22 +95,24 @@ export default function ExtractStep({ project, dispatch }) {
       )}
       {status === 'error' && <p className="error">{error}</p>}
       {status === 'done' && project.maskBitmap && (
-        <div className="compare">
-          <figure>
-            <img src={project.photoUrl} alt="Original" className="thumb" />
-          </figure>
-          <figure>
-            <img src={project.maskBitmap.previewUrl} alt="Silhouette" className="thumb checker" />
-            <button
-              className="refine-link"
-              onClick={() => setEditing(true)}
-              disabled={!project.maskBitmap?.bbox}
-            >
-              <PencilSimple size={16} weight="bold" />
-              <span>Refine silhouette</span>
-            </button>
-          </figure>
-        </div>
+        <>
+          <div className="compare">
+            <figure>
+              <img src={project.photoUrl} alt="Original" className="thumb" />
+            </figure>
+            <figure>
+              <img src={project.maskBitmap.previewUrl} alt="Silhouette" className="thumb checker" />
+            </figure>
+          </div>
+          <button
+            className="refine-link"
+            onClick={() => setEditing(true)}
+            disabled={!project.maskBitmap?.bbox}
+          >
+            <PencilSimple size={16} weight="bold" />
+            <span>Refine silhouette</span>
+          </button>
+        </>
       )}
       <div className="step-footer">
         <button className="back" onClick={() => dispatch({ type: 'BACK' })}>

@@ -109,21 +109,23 @@
 }
 
 .extract-step .refine-link {
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin: 8px 0 0;
-  padding: 10px 12px;
-  border: 0;
-  background: transparent;
+  padding: 12px;
+  border: 1px solid #9bbeed;
+  background: #fff;
   color: #2563eb;
   border-radius: 8px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .extract-step .refine-link:not(:disabled):hover {
-  background: #dbe9ff;
+  background: #f7faff;
+  border-color: #6f9adf;
 }
 
 .extract-step .refine-link:disabled {
@@ -177,4 +179,14 @@
 
 .extract-step .step-footer .primary:not(:disabled):hover {
   background: #1d4ed8;
+}
+
+@media (max-width: 720px) {
+  .extract-step .step-footer {
+    margin: auto -16px -16px;
+    padding: 12px 16px;
+  }
+  .extract-step .compare {
+    gap: 8px;
+  }
 }

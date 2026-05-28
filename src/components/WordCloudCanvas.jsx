@@ -1,13 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useDeferredValue, useEffect, useRef } from 'react'
 import { renderWordCloudToCanvas } from '../lib/renderWordCloud'
 import { resolvePalette } from '../styles/palettes'
 import './WordCloudCanvas.css'
 
 export default function WordCloudCanvas({ project, width }) {
   const canvasRef = useRef(null)
+  // Deferring style/seed lets React coalesce rapid slider drags so the
+  // expensive word packer doesn't run on every input event.
+  const deferredStyle = useDeferredValue(project.style)
+  const deferredSeed = useDeferredValue(project.seed)
+  const deferredNames = useDeferredValue(project.names)
 
   useEffect(() => {
-    if (!project.maskBitmap || project.names.length === 0) return
+    if (!project.maskBitmap || deferredNames.length === 0) return
     const { mask, width: mw, height: mh } = project.maskBitmap
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     // Canvas aspect follows the silhouette bbox so tall/narrow shapes (e.g. a
@@ -45,10 +50,10 @@ export default function WordCloudCanvas({ project, width }) {
       silhouetteBbox: project.maskBitmap.bbox,
       silhouetteSourceWidth: project.maskBitmap.imageWidth,
       silhouetteSourceHeight: project.maskBitmap.imageHeight,
-      names: project.names.map((n) => n.text),
-      seed: project.seed,
-      style: project.style,
-      palette: resolvePalette(project.style),
+      names: deferredNames.map((n) => n.text),
+      seed: deferredSeed,
+      style: deferredStyle,
+      palette: resolvePalette(deferredStyle),
     }).then(() => {
       if (cancelled) return
       const ctx = canvas.getContext('2d')
@@ -58,7 +63,7 @@ export default function WordCloudCanvas({ project, width }) {
       if (!cancelled) console.error('Word cloud render failed:', e)
     })
     return () => { cancelled = true }
-  }, [project.maskBitmap, project.names, project.style, project.seed, width])
+  }, [project.maskBitmap, deferredNames, deferredStyle, deferredSeed, width])
 
   return <canvas ref={canvasRef} className="wordcloud-canvas" />
 }

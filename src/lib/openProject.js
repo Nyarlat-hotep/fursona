@@ -1,6 +1,5 @@
 import { fetchPhotoBlob } from './savedProjects'
 import { removeBackground } from './backgroundRemoval'
-import { binarize, boundingBox, cropMask } from './mask'
 import { shapeToMaskBitmap } from './shapeMask'
 import { SHAPES } from '../styles/shapes'
 
@@ -39,31 +38,15 @@ export async function hydrateSavedProject(row, onProgress) {
   patch.photoUrl = URL.createObjectURL(blob)
 
   onProgress?.('Finding your pet…')
-  const cutout = await removeBackground(blob, () => {})
-  const bmp = await createImageBitmap(cutout)
-  const c = document.createElement('canvas')
-  c.width = bmp.width
-  c.height = bmp.height
-  const ctx = c.getContext('2d')
-  ctx.drawImage(bmp, 0, 0)
-  const imgData = ctx.getImageData(0, 0, bmp.width, bmp.height)
-  const fullMask = binarize(imgData, 64)
-  const bbox = boundingBox(fullMask, bmp.width, bmp.height)
-  if (!bbox) throw new Error('Could not re-extract silhouette from saved photo.')
-  const cropped = cropMask(fullMask, bmp.width, bbox)
-
-  const previewCanvas = document.createElement('canvas')
-  previewCanvas.width = bbox.w
-  previewCanvas.height = bbox.h
-  previewCanvas.getContext('2d').drawImage(c, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, bbox.w, bbox.h)
+  const result = await removeBackground(blob, () => {})
   patch.maskBitmap = {
-    mask: cropped,
-    width: bbox.w,
-    height: bbox.h,
-    previewUrl: previewCanvas.toDataURL('image/png'),
-    bbox,
-    imageWidth: bmp.width,
-    imageHeight: bmp.height,
+    mask: result.mask,
+    width: result.width,
+    height: result.height,
+    previewUrl: URL.createObjectURL(result.previewBlob),
+    bbox: result.bbox,
+    imageWidth: result.imageWidth,
+    imageHeight: result.imageHeight,
   }
   return patch
 }

@@ -6,18 +6,31 @@ export function prefetchModel() {
   return Promise.resolve()
 }
 
+/**
+ * Runs background removal in a worker. Returns a cancellable handle:
+ *   const { promise, cancel } = removeBackground(blob, onProgress)
+ *   ...later: cancel()  // terminates the worker if still running
+ *
+ * Calling `cancel()` after completion is a no-op. The returned promise
+ * rejects with an Error tagged `aborted: true` so callers can distinguish
+ * a deliberate cancellation from a real failure.
+ */
 export function removeBackground(blob, onProgress) {
-  return new Promise((resolve, reject) => {
-    const worker = new BackgroundRemovalWorker()
-    let settled = false
-    function cleanup() {
-      settled = true
-      try { worker.terminate() } catch {} // eslint-disable-line no-empty
-    }
+  const worker = new BackgroundRemovalWorker()
+  let settled = false
+  let rejectFn = null
+
+  function cleanup() {
+    settled = true
+    try { worker.terminate() } catch {} // eslint-disable-line no-empty
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    rejectFn = reject
     worker.onmessage = (e) => {
       const msg = e.data
       if (msg.type === 'progress') {
-        onProgress?.(msg.key, msg.current, msg.total)
+        if (!settled) onProgress?.(msg.key, msg.current, msg.total)
       } else if (msg.type === 'done') {
         if (!settled) { cleanup(); resolve(msg.result) }
       } else if (msg.type === 'error') {
@@ -25,8 +38,24 @@ export function removeBackground(blob, onProgress) {
       }
     }
     worker.onerror = (err) => {
-      if (!settled) { cleanup(); reject(err instanceof Error ? err : new Error(err.message || 'Worker error')) }
+      if (!settled) {
+        cleanup()
+        reject(err instanceof Error ? err : new Error(err.message || 'Worker error'))
+      }
     }
     worker.postMessage({ blob })
   })
+
+  function cancel() {
+    if (settled) return
+    const err = new Error('Background removal cancelled.')
+    err.aborted = true
+    cleanup()
+    rejectFn?.(err)
+  }
+
+  // Attach cancel to the promise itself for backward-compatible `await` callers,
+  // and also expose the structured handle.
+  promise.cancel = cancel
+  return promise
 }

@@ -24,33 +24,62 @@ export const initialProject = {
 }
 
 const MAX_STEP = 3
+export const MAX_NAME_LENGTH = 40
+export const MAX_NAMES = 200
+
+function revokeIfBlobUrl(url) {
+  if (url && url.startsWith('blob:')) {
+    try { URL.revokeObjectURL(url) } catch { /* ignore */ }
+  }
+}
+
+function revokeBitmapUrls(bitmap) {
+  if (bitmap?.previewUrl) revokeIfBlobUrl(bitmap.previewUrl)
+}
 
 export function projectReducer(state, action) {
   switch (action.type) {
     case 'NEXT': return { ...state, step: Math.min(state.step + 1, MAX_STEP) }
     case 'BACK': return { ...state, step: Math.max(state.step - 1, 0) }
     case 'GOTO': return { ...state, step: Math.max(0, Math.min(action.step, MAX_STEP)) }
-    case 'SET_PHOTO': return {
-      ...state,
-      photoBlob: action.blob,
-      photoUrl: action.url,
-      shapeId: null,
-      currentProjectId: null,
-    }
-    case 'SET_MASK': return { ...state, maskBitmap: action.bitmap }
-    case 'SET_SHAPE': return {
-      ...state,
-      photoBlob: null,
-      photoUrl: null,
-      maskBitmap: action.bitmap,
-      shapeId: action.shapeId ?? null,
-      currentProjectId: null,
-    }
-    case 'LOAD_PROJECT': return { ...state, ...action.patch }
+    case 'SET_PHOTO':
+      revokeIfBlobUrl(state.photoUrl)
+      revokeBitmapUrls(state.maskBitmap)
+      return {
+        ...state,
+        photoBlob: action.blob,
+        photoUrl: action.url,
+        maskBitmap: null,
+        shapeId: null,
+        currentProjectId: null,
+      }
+    case 'SET_MASK':
+      if (state.maskBitmap !== action.bitmap) revokeBitmapUrls(state.maskBitmap)
+      return { ...state, maskBitmap: action.bitmap }
+    case 'SET_SHAPE':
+      revokeIfBlobUrl(state.photoUrl)
+      revokeBitmapUrls(state.maskBitmap)
+      return {
+        ...state,
+        photoBlob: null,
+        photoUrl: null,
+        maskBitmap: action.bitmap,
+        shapeId: action.shapeId ?? null,
+        currentProjectId: null,
+      }
+    case 'LOAD_PROJECT':
+      if (action.patch.photoUrl !== undefined && action.patch.photoUrl !== state.photoUrl) {
+        revokeIfBlobUrl(state.photoUrl)
+      }
+      if (action.patch.maskBitmap !== undefined && action.patch.maskBitmap !== state.maskBitmap) {
+        revokeBitmapUrls(state.maskBitmap)
+      }
+      return { ...state, ...action.patch }
     case 'SET_CURRENT_PROJECT_ID': return { ...state, currentProjectId: action.id }
     case 'ADD_NAME': {
-      const text = String(action.text || '').trim()
+      const text = String(action.text || '').trim().slice(0, MAX_NAME_LENGTH)
       if (!text) return state
+      if (state.names.length >= MAX_NAMES) return state
       return { ...state, names: [...state.names, { text, allowVertical: true }] }
     }
     case 'REMOVE_NAME': return { ...state, names: state.names.filter((_, i) => i !== action.index) }
@@ -60,7 +89,10 @@ export function projectReducer(state, action) {
     }
     case 'SET_STYLE': return { ...state, style: { ...state.style, ...action.patch } }
     case 'REGENERATE': return { ...state, seed: Math.floor(Math.random() * 2 ** 31) }
-    case 'RESET': return { ...initialProject, seed: Math.floor(Math.random() * 2 ** 31) }
+    case 'RESET':
+      revokeIfBlobUrl(state.photoUrl)
+      revokeBitmapUrls(state.maskBitmap)
+      return { ...initialProject, seed: Math.floor(Math.random() * 2 ** 31) }
     default: return state
   }
 }

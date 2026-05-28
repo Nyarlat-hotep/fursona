@@ -16,12 +16,31 @@ export async function exportPng(project, sizeKey) {
 
   const silAspect = project.maskBitmap.width / project.maskBitmap.height
   const portrait = silAspect <= 1
-  const w = Math.round((portrait ? size.wIn : size.hIn) * DPI)
-  const h = Math.round((portrait ? size.hIn : size.wIn) * DPI)
+  let w = Math.round((portrait ? size.wIn : size.hIn) * DPI)
+  let h = Math.round((portrait ? size.hIn : size.wIn) * DPI)
+
+  // Memory guard: canvases this large can crash low-memory devices (especially
+  // mobile). Each pixel = 4 bytes, so a 4800×6000 canvas = ~115 MB. Scale the
+  // canvas down (preserving aspect) when device memory is limited or when the
+  // canvas exceeds an absolute safety ceiling. The downloaded PNG will be
+  // smaller than the print spec but still usable.
+  const deviceMemoryGB = navigator.deviceMemory ?? 8
+  const maxPixels = deviceMemoryGB < 4
+    ? 18_000_000  // ~4242 × 4242 — caps an 11×14 at 300 DPI on low-mem devices
+    : 60_000_000  // ~7745 × 7745 — well under a 16×20 ceiling on desktop
+  if (w * h > maxPixels) {
+    const scale = Math.sqrt(maxPixels / (w * h))
+    w = Math.round(w * scale)
+    h = Math.round(h * scale)
+  }
 
   const canvas = document.createElement('canvas')
   canvas.width = w
   canvas.height = h
+  // Some browsers silently fail to allocate huge canvases — detect early.
+  if (canvas.width !== w || canvas.height !== h) {
+    throw new Error(`Image is too large for this device. Try a smaller print size.`)
+  }
 
   await renderWordCloudToCanvas({
     canvas,
