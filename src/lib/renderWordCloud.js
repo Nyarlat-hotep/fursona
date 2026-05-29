@@ -62,8 +62,14 @@ export async function renderWordCloudToCanvas({
     }
   }
 
-  // Word occurrences with assigned styles + size tier multipliers
-  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses: 14 })
+  // Word occurrences with assigned styles + size tier multipliers. Scale
+  // fillPasses so the total number of occurrences (N × (1 + fillPasses))
+  // hits a minimum density target — keeps the cloud packed even when the
+  // user only typed a handful of names.
+  const TARGET_OCCURRENCES = 200
+  const n = Math.max(1, names.length)
+  const fillPasses = Math.max(14, Math.ceil(TARGET_OCCURRENCES / n) - 1)
+  const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses })
   // Convert weight multipliers into actual font sizes (canvas px)
   const baseFontUnit = w / 26
   const words = occurrences.map((a) => ({
@@ -79,7 +85,7 @@ export async function renderWordCloudToCanvas({
 
   // 1. Background
   if (style.backgroundType === 'pattern' && style.backgroundValue) {
-    const pat = await loadPattern(style.backgroundValue, palette.colors)
+    const pat = await loadPattern(style.backgroundValue, palette.colors, palette.bg)
     if (pat) {
       const cssScale = (w / 580) * (style.patternScale || 1) * pat.baseScale
       const pattern = ctx.createPattern(pat.source, 'repeat')
@@ -91,13 +97,14 @@ export async function renderWordCloudToCanvas({
       ctx.fillStyle = '#eef4ff'
     }
     ctx.fillRect(0, 0, w, h)
-    // Apply pattern opacity by overlaying cream — since the pattern's own
-    // background is cream, this fades only the marks without re-rasterizing.
+    // Apply pattern opacity by overlaying the palette's background tone — the
+    // pattern's own background is tinted to that same tone in loadPattern(),
+    // so fading just blends the marks toward the bg without re-rasterizing.
     const opacity = Math.max(0, Math.min(1, style.patternOpacity ?? 1))
     if (opacity < 1) {
       ctx.save()
       ctx.globalAlpha = 1 - opacity
-      ctx.fillStyle = '#eef4ff'
+      ctx.fillStyle = palette.bg || '#eef4ff'
       ctx.fillRect(0, 0, w, h)
       ctx.restore()
     }
@@ -115,7 +122,7 @@ export async function renderWordCloudToCanvas({
     if (opacity > 0) {
       const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
       const fillColor = usingPattern
-        ? withAlpha('#eef4ff', opacity)
+        ? withAlpha(palette.bg || '#eef4ff', opacity)
         : withAlpha(palette.colors[0] || '#1a1a1a', 0.15 * opacity)
       // Feather is specified in canvas pixels at preview resolution (~580px wide).
       // Scale to the actual render width so exports get proportional smoothing.
@@ -245,10 +252,11 @@ async function ensureFontsLoaded() {
 }
 
 const _patternCache = new Map()
-async function loadPattern(src, paletteColors) {
+async function loadPattern(src, paletteColors, paletteBg) {
   const primary = withHexAlpha(paletteColors?.[0] || '#b3c5dc', 0.4)
   const secondary = withHexAlpha(paletteColors?.[1] || paletteColors?.[0] || '#cfdae8', 0.22)
-  const cacheKey = `${src}|${primary}|${secondary}`
+  const bg = paletteBg || '#eef4ff'
+  const cacheKey = `${src}|${primary}|${secondary}|${bg}`
   if (_patternCache.has(cacheKey)) return _patternCache.get(cacheKey)
 
   const HI_RES = 512
@@ -256,10 +264,12 @@ async function loadPattern(src, paletteColors) {
   let entry = null
 
   if (text) {
-    // Tint pattern marks (cream bg stays untouched).
+    // Tint pattern marks AND the cream background so the pattern matches the
+    // currently selected palette.
     const tinted = text
       .replaceAll(/#d0c8b8/gi, primary)
       .replaceAll(/#e8e3d8/gi, secondary)
+      .replaceAll(/#f7f5f0/gi, bg)
     const doc = new DOMParser().parseFromString(tinted, 'image/svg+xml')
     const svg = doc.documentElement
     const naturalSize = parseInt(
