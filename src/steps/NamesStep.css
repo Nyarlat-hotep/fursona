@@ -26,6 +26,12 @@
   border-color: #2563eb;
 }
 
+.names-step .dup-msg {
+  margin: -8px 0 0;
+  font-size: 13px;
+  color: #b54708;
+}
+
 .names-step .chips {
   list-style: none;
   margin: 0;

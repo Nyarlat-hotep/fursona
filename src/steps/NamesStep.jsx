@@ -5,13 +5,22 @@ import './NamesStep.css'
 
 export default function NamesStep({ project, dispatch }) {
   const [draft, setDraft] = useState('')
+  const [duplicate, setDuplicate] = useState('')
   const atCap = project.names.length >= MAX_NAMES
 
   function add() {
     const text = draft.trim()
     if (!text || atCap) return
+    const exists = project.names.some(
+      (n) => n.text.toLowerCase() === text.toLowerCase()
+    )
+    if (exists) {
+      setDuplicate(text)
+      return
+    }
     dispatch({ type: 'ADD_NAME', text })
     setDraft('')
+    setDuplicate('')
   }
 
   return (
@@ -23,12 +32,17 @@ export default function NamesStep({ project, dispatch }) {
         value={draft}
         maxLength={MAX_NAME_LENGTH}
         disabled={atCap}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => { setDraft(e.target.value); if (duplicate) setDuplicate('') }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add() }
         }}
         autoFocus
       />
+      {duplicate && (
+        <p className="dup-msg" role="status">
+          “{duplicate}” is already on the list.
+        </p>
+      )}
       <ul className="chips">
         {project.names.map((n, i) => (
           <li key={i} className="chip">
