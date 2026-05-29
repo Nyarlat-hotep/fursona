@@ -46,7 +46,7 @@ export default function SplashScreen() {
       </aside>
       <div className="splash-pane-right">
         <div className="splash-card">
-        <h1 className="splash-brand">fursona</h1>
+        <h1 className="splash-brand">petprint</h1>
         <p className="splash-tagline">Turn your pet's nicknames into a printable word cloud shaped like them.</p>
 
         <form onSubmit={submit} className="splash-form">

@@ -28,7 +28,7 @@ export default function DonationModal({ open, busy, onDownload, onSkip }) {
       <div className="donation-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="donation-header">
           <Heart size={28} weight="fill" className="donation-heart" />
-          <h3>Enjoying Fursona?</h3>
+          <h3>Enjoying Petprint?</h3>
           <p>If this was useful, a small tip keeps me building. Totally optional — your download is ready either way.</p>
         </div>
 

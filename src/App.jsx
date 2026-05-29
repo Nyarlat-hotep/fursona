@@ -118,7 +118,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="brand">fursona</h1>
+        <h1 className="brand">petprint</h1>
         <HeaderActions
           project={project}
           dispatch={dispatch}

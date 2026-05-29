@@ -1,4 +1,4 @@
-const KEY = 'fursona:autosave:v1'
+const KEY = 'petprint:autosave:v1'
 
 export function loadDraft() {
   try {
