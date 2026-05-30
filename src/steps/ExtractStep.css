@@ -16,25 +16,64 @@
 }
 
 .extract-step .paw-loader {
-  display: flex;
-  gap: 8px;
+  position: relative;
+  width: 200px;
+  height: 80px;
+  margin: 4px 0;
 }
 
-.extract-step .paw-loader span {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #2563eb;
-  animation: paw-bounce 1.2s ease-in-out infinite;
+.extract-step .paw-loader svg {
+  position: absolute;
+  color: #2563eb;
+  opacity: 0;
+  animation-duration: 2.4s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
-.extract-step .paw-loader span:nth-child(2) { animation-delay: 0.15s; }
-.extract-step .paw-loader span:nth-child(3) { animation-delay: 0.3s; }
-.extract-step .paw-loader span:nth-child(4) { animation-delay: 0.45s; }
+/* Five paws in a zigzag trail.
+   Sequence: paw1 in → paw2 in → … → paw5 in → paw1 out → paw2 out → … → paw5 out → restart.
+   Each paw fades in at its slot, stays visible, fades out at the matching slot in the second half. */
+.extract-step .paw-loader svg:nth-child(1) { left:   0%; top: 38px; transform: rotate(-18deg); animation-name: paw-1; }
+.extract-step .paw-loader svg:nth-child(2) { left:  20%; top:  8px; transform: rotate( 14deg); animation-name: paw-2; }
+.extract-step .paw-loader svg:nth-child(3) { left:  40%; top: 38px; transform: rotate(-12deg); animation-name: paw-3; }
+.extract-step .paw-loader svg:nth-child(4) { left:  60%; top:  8px; transform: rotate( 16deg); animation-name: paw-4; }
+.extract-step .paw-loader svg:nth-child(5) { left:  80%; top: 38px; transform: rotate(-14deg); animation-name: paw-5; }
 
-@keyframes paw-bounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30%           { transform: translateY(-12px); opacity: 1; }
+@keyframes paw-1 {
+  0%   { opacity: 0; }
+  6%   { opacity: 1; }
+  50%  { opacity: 1; }
+  56%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes paw-2 {
+  0%,  10% { opacity: 0; }
+  16%      { opacity: 1; }
+  60%      { opacity: 1; }
+  66%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+@keyframes paw-3 {
+  0%,  20% { opacity: 0; }
+  26%      { opacity: 1; }
+  70%      { opacity: 1; }
+  76%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+@keyframes paw-4 {
+  0%,  30% { opacity: 0; }
+  36%      { opacity: 1; }
+  80%      { opacity: 1; }
+  86%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+@keyframes paw-5 {
+  0%,  40% { opacity: 0; }
+  46%      { opacity: 1; }
+  90%      { opacity: 1; }
+  96%      { opacity: 0; }
+  100%     { opacity: 0; }
 }
 
 .extract-step .loading-text {

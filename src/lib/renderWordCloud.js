@@ -164,8 +164,13 @@ export async function renderWordCloudToCanvas({
 
 function packWords(words, mask, maskW, maskH, ctx, seed) {
   const rng = makeRng(seed + 7)
-  // Largest first so big anchors place before small ones crowd in
-  const sorted = [...words].sort((a, b) => b.fontSize - a.fontSize)
+  // Largest first so big anchors place before small ones crowd in. Favorites
+  // get sorted up front (even ahead of equal-size non-favorites) so they claim
+  // space before the silhouette fills up.
+  const sorted = [...words].sort((a, b) => {
+    if (a.favorite !== b.favorite) return a.favorite ? -1 : 1
+    return b.fontSize - a.fontSize
+  })
 
   // Measure each word's natural dimensions
   for (const word of sorted) {
@@ -177,19 +182,20 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
 
   const placed = []
   const result = []
+  const padding = 2
 
-  for (const word of sorted) {
+  // Try placing a single word at its current measured size + rotation. Returns
+  // {cx, cy, x0, y0, x1, y1} on success, null otherwise.
+  function tryPlace(word, maxAttempts) {
     const isRotated = word.rotation === 90
     const boxW = isRotated ? word.mh : word.mw
     const boxH = isRotated ? word.mw : word.mh
-
-    let foundCx = null
-    let foundCy = null
     const halfW = boxW / 2
     const halfH = boxH / 2
-    const padding = 1
 
-    const maxAttempts = 800
+    // Word is wider than the silhouette — no point sampling positions.
+    if (boxW > maskW - padding * 2 || boxH > maskH - padding * 2) return null
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const cx = halfW + rng() * (maskW - boxW)
       const cy = halfH + rng() * (maskH - boxH)
@@ -217,7 +223,6 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
       }
       if (!inMask) continue
 
-      // Reject if overlapping a placed word
       let overlaps = false
       for (const p of placed) {
         if (!(x1 + padding <= p.x0 || x0 >= p.x1 + padding || y1 + padding <= p.y0 || y0 >= p.y1 + padding)) {
@@ -227,14 +232,48 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
       }
       if (overlaps) continue
 
-      foundCx = cx
-      foundCy = cy
-      placed.push({ x0, y0, x1, y1 })
-      break
+      return { cx, cy, x0, y0, x1, y1 }
+    }
+    return null
+  }
+
+  function remeasure(word) {
+    ctx.font = `${word.fontWeight} ${word.fontSize}px "${word.fontFamily}", sans-serif`
+    word.mw = ctx.measureText(word.text).width
+    word.mh = word.fontSize * 1.05
+  }
+
+  for (const word of sorted) {
+    let hit = tryPlace(word, 800)
+
+    // Favorites must always appear. If xlarge doesn't fit (e.g. long name on
+    // narrow silhouette), try the alternate rotation, then progressively
+    // shrink until it either fits or hits a minimum floor (~40% of original).
+    if (!hit && word.favorite) {
+      const originalSize = word.fontSize
+      const originalRot = word.rotation
+      const minSize = Math.max(originalSize * 0.4, 24)
+
+      // First try flipping rotation at full size
+      word.rotation = originalRot === 90 ? 0 : 90
+      hit = tryPlace(word, 400)
+      if (!hit) word.rotation = originalRot
+
+      // Then shrink in 15% steps, alternating rotations
+      while (!hit && word.fontSize > minSize) {
+        word.fontSize *= 0.85
+        remeasure(word)
+        hit = tryPlace(word, 400)
+        if (!hit) {
+          word.rotation = word.rotation === 90 ? 0 : 90
+          hit = tryPlace(word, 400)
+        }
+      }
     }
 
-    if (foundCx !== null) {
-      result.push({ ...word, cx: foundCx, cy: foundCy })
+    if (hit) {
+      placed.push({ x0: hit.x0, y0: hit.y0, x1: hit.x1, y1: hit.y1 })
+      result.push({ ...word, cx: hit.cx, cy: hit.cy })
     }
   }
 

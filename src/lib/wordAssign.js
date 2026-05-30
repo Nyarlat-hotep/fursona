@@ -22,9 +22,21 @@ const ROT_TIERS = [
 
 export function assignWords(names, seed, fonts, palette, { fillPasses = 0 } = {}) {
   const rng = makeRng(seed)
-  const assignOne = (text, tiers) => {
-    const tierLabel = weightedTier(rng, tiers)
-    const tier = tiers.find((t) => t.label === tierLabel)
+  // Normalize: accept either ['foo'] or [{ text:'foo', favorite:true }].
+  const normalized = names.map((n) => typeof n === 'string'
+    ? { text: n, favorite: false }
+    : { text: n.text, favorite: !!n.favorite })
+
+  const xlargeTier = SIZE_TIERS.find((t) => t.label === 'xlarge')
+
+  const assignOne = ({ text, favorite }, tiers, { forceXLarge = false } = {}) => {
+    let tier
+    if (forceXLarge && xlargeTier) {
+      tier = xlargeTier
+    } else {
+      const tierLabel = weightedTier(rng, tiers)
+      tier = tiers.find((t) => t.label === tierLabel)
+    }
     const font = pick(rng, fonts)
     return {
       text,
@@ -33,12 +45,17 @@ export function assignWords(names, seed, fonts, palette, { fillPasses = 0 } = {}
       color: pick(rng, palette.colors),
       rotation: weightedTier(rng, ROT_TIERS),
       weight: tier.multiplier,
+      favorite,
     }
   }
 
-  const out = names.map((n) => assignOne(n, SIZE_TIERS))
+  // Primary pass — every name gets one placement at SIZE_TIERS; favorites are
+  // forced to the largest tier so they anchor the silhouette.
+  const out = normalized.map((n) => assignOne(n, SIZE_TIERS, { forceXLarge: n.favorite }))
+  // Fill passes use small/tiny/micro/nano for everyone (favorites repeat at
+  // normal small sizes — the hero word is the primary placement).
   for (let p = 0; p < fillPasses; p++) {
-    for (const n of names) out.push(assignOne(n, FILL_TIERS))
+    for (const n of normalized) out.push(assignOne(n, FILL_TIERS))
   }
   return out
 }

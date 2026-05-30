@@ -145,7 +145,7 @@ async function renderPreview(project) {
       mask: project.maskBitmap.mask,
       maskWidth: project.maskBitmap.width,
       maskHeight: project.maskBitmap.height,
-      names: project.names.map((n) => n.text),
+      names: project.names.map((n) => ({ text: n.text, favorite: !!n.favorite })),
       seed: project.seed,
       style: project.style,
       palette: resolvePalette(project.style),

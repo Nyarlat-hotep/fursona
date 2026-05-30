@@ -8,9 +8,243 @@
 
 .style-step .style-grid {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 260px 1fr 240px;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
+}
+
+/* Right-side names panel (desktop). On mobile it's hidden — the drawer is used instead. */
+/* Names column shouldn't dictate the grid row height — absolute-positioning
+   the panel inside lets the row size to controls/preview, then the names
+   panel fills whatever that ends up being. */
+.style-step .names-aside {
+  position: relative;
+  min-height: 0;
+}
+
+.style-step .names-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f7faff;
+  border: 1px solid #bfd5f5;
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+
+.style-step .names-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.style-step .names-panel-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.style-step .names-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #5a5a5a;
+  line-height: 1.4;
+}
+
+.style-step .names-hint svg {
+  vertical-align: -2px;
+  margin: 0 2px;
+}
+
+.style-step .names-hint .nobreak {
+  white-space: nowrap;
+}
+
+.style-step .names-panel input[type='text'] {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #9bbeed;
+  border-radius: 6px;
+  background: #fff;
+  outline: none;
+}
+
+.style-step .names-panel input[type='text']:focus {
+  border-color: #2563eb;
+}
+
+.style-step .names-panel .dup-msg {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: #b54708;
+}
+
+.style-step .names-empty {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+}
+
+.style-step .names-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.style-step .names-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.style-step .names-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #cfe0ff;
+  color: #0f172a;
+  font-size: 13px;
+  width: 100%;
+}
+
+.style-step .names-chip.is-fav {
+  background: #fde68a;
+}
+
+.style-step .names-chip .chip-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.style-step .names-chip .chip-star,
+.style-step .names-chip .chip-x {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.style-step .names-chip .chip-star {
+  background: transparent;
+  color: #b08900;
+}
+
+.style-step .names-chip .chip-star:hover:not(:disabled) {
+  background: rgba(250, 250, 250, 0.5);
+}
+
+.style-step .names-chip .chip-star:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.style-step .names-chip.is-fav .chip-star {
+  color: #92400e;
+}
+
+.style-step .names-chip .chip-x {
+  background: #9bbeed;
+  color: #2d52bf;
+}
+
+.style-step .names-chip.is-fav .chip-x {
+  background: #fcd34d;
+  color: #78350f;
+}
+
+.style-step .names-chip .chip-x:hover {
+  background: #6f9adf;
+}
+
+.style-step .names-chip.is-fav .chip-x:hover {
+  background: #fbbf24;
+}
+
+/* Mobile drawer trigger (hidden on desktop) */
+.style-step .names-drawer-trigger {
+  display: none;
+}
+
+.style-step .names-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.style-step .names-drawer-backdrop.is-open {
+  opacity: 1;
+}
+
+.style-step .names-drawer {
+  position: relative;
+  background: #fff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px 20px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+.style-step .names-drawer.is-open {
+  transform: translateY(0);
+}
+
+.style-step .names-drawer .names-panel {
+  position: static;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.style-step .names-drawer-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: #eef4ff;
+  color: #2563eb;
+  cursor: pointer;
 }
 
 .style-step .controls {
@@ -21,7 +255,7 @@
 
 .style-step fieldset {
   border: 1px solid #bfd5f5;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px;
   margin: 0;
 }
@@ -365,17 +599,17 @@
 .style-step .preview {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   background: #f7faff;
-  border-radius: 8px;
-  padding: 12px 16px 16px;
+  border-radius: 12px;
+  padding: 16px;
   min-height: 400px;
+  border: 1px solid #bfd5f5
 }
 
 .style-step .preview-canvas-wrap {
   width: 100%;
-  max-width: 580px;
-  align-self: center;
+  align-self: stretch;
 }
 
 .style-step .align-bar {
@@ -456,6 +690,25 @@
     order: -1;
     min-height: 0;
     padding: 10px;
+  }
+  /* Names sidebar collapses into a drawer triggered from the preview area. */
+  .style-step .names-aside {
+    display: none;
+  }
+  .style-step .names-drawer-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid #9bbeed;
+    background: #fff;
+    color: #2563eb;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    align-self: center;
   }
   .style-step .preview-canvas-wrap {
     max-width: 100%;

@@ -91,6 +91,11 @@
   gap: 24px;
 }
 
+/* Step 4 (style + names panel) needs more room so the canvas can breathe. */
+.step-card.step-card--wide {
+  max-width: 1320px;
+}
+
 @media (max-width: 720px) {
   .app-main {
     padding: 12px;
@@ -114,7 +119,9 @@
     right: 0;
     flex-direction: column;
     align-items: stretch;
-    min-width: 220px;
+    /* Sized to fit the saves rows so toggling the saves open/closed doesn't
+       reflow the menu width. */
+    min-width: 280px;
     background: #fff;
     border: 1px solid #bfd5f5;
     border-radius: 10px;
@@ -149,12 +156,6 @@
   .header-actions-list .saves-trigger {
     justify-content: center;
   }
-}
-
-.step-label {
-  margin: 0;
-  font-size: 13px;
-  color: #888;
 }
 
 .step-body {

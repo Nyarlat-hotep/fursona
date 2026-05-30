@@ -7,7 +7,6 @@ import { isSupabaseConfigured } from './lib/supabase'
 import { hydrateSavedProject } from './lib/openProject'
 import UploadStep from './steps/UploadStep'
 import ExtractStep from './steps/ExtractStep'
-import NamesStep from './steps/NamesStep'
 import StyleStep from './steps/StyleStep'
 import UserMenu from './components/UserMenu'
 import SavesDropdown from './components/SavesDropdown'
@@ -15,7 +14,6 @@ import SplashScreen from './components/SplashScreen'
 import PasswordResetModal from './components/PasswordResetModal'
 import './App.css'
 
-const STEPS = ['Pick', 'Extract', 'Nicknames', 'Style & Download']
 
 function HeaderActions({ project, dispatch, user, onOpenProject, refreshKey }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -128,13 +126,11 @@ export default function App() {
         />
       </header>
       <main className="app-main">
-        <div className="step-card">
-          <p className="step-label">Step {project.step + 1} of {STEPS.length} — {STEPS[project.step]}</p>
+        <div className={`step-card${project.step === 2 ? ' step-card--wide' : ''}`}>
           <div className="step-body">
             {project.step === 0 && <UploadStep project={project} dispatch={dispatch} />}
             {project.step === 1 && <ExtractStep project={project} dispatch={dispatch} />}
-            {project.step === 2 && <NamesStep project={project} dispatch={dispatch} />}
-            {project.step === 3 && <StyleStep project={project} dispatch={dispatch} />}
+            {project.step === 2 && <StyleStep project={project} dispatch={dispatch} />}
           </div>
         </div>
       </main>

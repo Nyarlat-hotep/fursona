@@ -52,7 +52,7 @@ export async function exportPng(project, sizeKey) {
     silhouetteBbox: project.maskBitmap.bbox,
     silhouetteSourceWidth: project.maskBitmap.imageWidth,
     silhouetteSourceHeight: project.maskBitmap.imageHeight,
-    names: project.names.map((n) => n.text),
+    names: project.names.map((n) => ({ text: n.text, favorite: !!n.favorite })),
     seed: project.seed,
     style: project.style,
     palette: resolvePalette(project.style),

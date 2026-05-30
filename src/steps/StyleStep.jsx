@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk } from '@phosphor-icons/react'
+import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk, Star, X, PencilSimpleLine } from '@phosphor-icons/react'
+import { MAX_NAME_LENGTH, MAX_NAMES, MAX_FAVORITES } from '../state/projectStore'
 import { useAuth } from '../state/useAuth'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { SAVE_CAP } from '../lib/savedProjects'
@@ -150,6 +151,90 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
   )
 }
 
+function NamesPanel({ project, dispatch }) {
+  const [draft, setDraft] = useState('')
+  const [duplicate, setDuplicate] = useState('')
+  const names = project.names
+  const atCap = names.length >= MAX_NAMES
+  const favoriteCount = names.filter((n) => n.favorite).length
+  const favsAtCap = favoriteCount >= MAX_FAVORITES
+
+  function add() {
+    const text = draft.trim()
+    if (!text || atCap) return
+    const exists = names.some((n) => n.text.toLowerCase() === text.toLowerCase())
+    if (exists) { setDuplicate(text); return }
+    dispatch({ type: 'ADD_NAME', text })
+    setDraft('')
+    setDuplicate('')
+  }
+
+  return (
+    <div className="names-panel">
+      <div className="names-panel-head">
+        <h3>Names</h3>
+      </div>
+      <p className="names-hint">
+        Tap{' '}
+        <span className="nobreak">the <Star size={12} weight="fill" /> to</span>
+        {' '}make a name a hero — favorites always appear as the largest words.
+        ({favoriteCount}/{MAX_FAVORITES})
+      </p>
+      <input
+        type="text"
+        placeholder={atCap ? `Name limit reached (${MAX_NAMES})` : 'Add a nickname'}
+        value={draft}
+        maxLength={MAX_NAME_LENGTH}
+        disabled={atCap}
+        onChange={(e) => { setDraft(e.target.value); if (duplicate) setDuplicate('') }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add() }
+        }}
+      />
+      {duplicate && (
+        <p className="dup-msg" role="status">
+          “{duplicate}” is already on the list.
+        </p>
+      )}
+      {names.length === 0 ? (
+        <p className="names-empty">No names yet — add one above.</p>
+      ) : (
+        <ul className="names-chips">
+          {names.map((n, i) => {
+            const disableStar = !n.favorite && favsAtCap
+            return (
+              <li key={i} className={`names-chip${n.favorite ? ' is-fav' : ''}`}>
+                <button
+                  type="button"
+                  className="chip-star"
+                  onClick={() => dispatch({ type: 'TOGGLE_FAVORITE', index: i })}
+                  disabled={disableStar}
+                  title={n.favorite
+                    ? 'Remove from favorites'
+                    : disableStar ? `Up to ${MAX_FAVORITES} favorites` : 'Mark as favorite'}
+                  aria-label={n.favorite ? `Unfavorite ${n.text}` : `Favorite ${n.text}`}
+                  aria-pressed={n.favorite}
+                >
+                  <Star size={14} weight={n.favorite ? 'fill' : 'regular'} />
+                </button>
+                <span className="chip-text">{n.text}</span>
+                <button
+                  type="button"
+                  className="chip-x"
+                  onClick={() => dispatch({ type: 'REMOVE_NAME', index: i })}
+                  aria-label={`Remove ${n.text}`}
+                >
+                  <X size={12} weight="bold" />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function StyleStep({ project, dispatch }) {
   const setStyle = (patch) => dispatch({ type: 'SET_STYLE', patch })
   const { backgroundType, backgroundValue, paletteId } = project.style
@@ -162,7 +247,21 @@ export default function StyleStep({ project, dispatch }) {
   const [saveOpen, setSaveOpen] = useState(false)
   const [donationOpen, setDonationOpen] = useState(false)
   const [toast, setToast] = useState(null)
-  const [canvasWidth, setCanvasWidth] = useState(580)
+  const [canvasWidth, setCanvasWidth] = useState(780)
+  const [namesDrawerOpen, setNamesDrawerOpen] = useState(false)
+  const [namesDrawerMounted, setNamesDrawerMounted] = useState(false)
+
+  function openNamesDrawer() {
+    setNamesDrawerMounted(true)
+    // Next frame so the initial transform/opacity is committed before the
+    // .is-open class transitions to the visible state.
+    requestAnimationFrame(() => setNamesDrawerOpen(true))
+  }
+  function closeNamesDrawer() {
+    setNamesDrawerOpen(false)
+    // Match the longest transition (transform 0.3s) before unmounting.
+    setTimeout(() => setNamesDrawerMounted(false), 320)
+  }
   const canvasWrapRef = useRef(null)
 
   useEffect(() => {
@@ -170,7 +269,7 @@ export default function StyleStep({ project, dispatch }) {
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const w = Math.floor(entry.contentRect.width)
-      if (w > 0) setCanvasWidth(Math.min(580, w))
+      if (w > 0) setCanvasWidth(w)
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -400,11 +499,55 @@ export default function StyleStep({ project, dispatch }) {
           <div className="preview-canvas-wrap" ref={canvasWrapRef}>
             <WordCloudCanvas project={project} width={canvasWidth} />
           </div>
+          <button
+            type="button"
+            className="names-drawer-trigger"
+            onClick={openNamesDrawer}
+          >
+            <PencilSimpleLine size={16} weight="bold" />
+            <span>Manage names ({project.names.length})</span>
+          </button>
         </section>
+
+        <aside className="names-aside">
+          <NamesPanel project={project} dispatch={dispatch} />
+        </aside>
       </div>
 
+      {namesDrawerMounted && (
+        <div
+          className={`names-drawer-backdrop${namesDrawerOpen ? ' is-open' : ''}`}
+          onClick={closeNamesDrawer}
+        >
+          <div
+            className={`names-drawer${namesDrawerOpen ? ' is-open' : ''}`}
+            role="dialog"
+            aria-label="Manage names"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="names-drawer-close"
+              onClick={closeNamesDrawer}
+              aria-label="Close"
+            >
+              <X size={18} weight="bold" />
+            </button>
+            <NamesPanel project={project} dispatch={dispatch} />
+          </div>
+        </div>
+      )}
+
       <div className="step-footer">
-        <button className="back" onClick={() => dispatch({ type: 'BACK' })} disabled={busy}>
+        <button
+          className="back"
+          onClick={() =>
+            project.photoBlob
+              ? dispatch({ type: 'BACK' })
+              : dispatch({ type: 'GOTO', step: 0 })
+          }
+          disabled={busy}
+        >
           <ArrowLeft size={16} weight="bold" />
           <span>Back</span>
         </button>

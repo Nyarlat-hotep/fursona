@@ -60,13 +60,25 @@ export default function SavesDropdown({ user, onOpenProject, refreshKey }) {
   const [opening, setOpening] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const { projects, loading, refresh, count } = useSavedProjects(user)
   const ref = useRef(null)
 
   useEffect(() => { refresh() }, [refreshKey, refresh])
 
+  // On mobile, saves always render inline inside the nav menu (no toggle).
   useEffect(() => {
-    if (!open) return
+    const mq = window.matchMedia('(max-width: 720px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  const panelOpen = open || isMobile
+
+  useEffect(() => {
+    if (!open || isMobile) return
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     function onKey(e) { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('mousedown', onDoc)
@@ -75,11 +87,11 @@ export default function SavesDropdown({ user, onOpenProject, refreshKey }) {
       document.removeEventListener('mousedown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
+  }, [open, isMobile])
 
   async function handleOpen(row) {
     setOpening(true)
-    setOpen(false)
+    if (!isMobile) setOpen(false)
     try {
       await onOpenProject(row)
     } catch (e) {
@@ -105,18 +117,25 @@ export default function SavesDropdown({ user, onOpenProject, refreshKey }) {
   }
 
   return (
-    <div className={`saves-dropdown ${open ? 'is-open' : ''}`} ref={ref}>
-      <button
-        type="button"
-        className="saves-trigger"
-        onClick={() => setOpen((o) => !o)}
-        disabled={opening}
-      >
-        <FolderOpen size={16} weight="bold" />
-        <span>{opening ? 'Opening…' : `Saves (${count}/${SAVE_CAP})`}</span>
-        <CaretDown size={12} weight="bold" className="saves-caret" />
-      </button>
-      {open && (
+    <div className={`saves-dropdown ${panelOpen ? 'is-open' : ''}${isMobile ? ' is-inline' : ''}`} ref={ref}>
+      {isMobile ? (
+        <div className="saves-inline-label">
+          <FolderOpen size={16} weight="bold" />
+          <span>{opening ? 'Opening…' : `Saves (${count}/${SAVE_CAP})`}</span>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="saves-trigger"
+          onClick={() => setOpen((o) => !o)}
+          disabled={opening}
+        >
+          <FolderOpen size={16} weight="bold" />
+          <span>{opening ? 'Opening…' : `Saves (${count}/${SAVE_CAP})`}</span>
+          <CaretDown size={12} weight="bold" className="saves-caret" />
+        </button>
+      )}
+      {panelOpen && (
         <div className="saves-panel">
           {loading && <p className="saves-empty">Loading…</p>}
           {!loading && projects.length === 0 && (

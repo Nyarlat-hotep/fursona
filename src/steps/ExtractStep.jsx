@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PencilSimple, ArrowLeft } from '@phosphor-icons/react'
+import { PencilSimple, ArrowLeft, PawPrint } from '@phosphor-icons/react'
 import { removeBackground } from '../lib/backgroundRemoval'
 import MaskEditor from '../components/MaskEditor'
 import './ExtractStep.css'
@@ -77,8 +77,12 @@ export default function ExtractStep({ project, dispatch }) {
     <div className="extract-step">
       {status === 'working' && (
         <div className="loading">
-          <div className="paw-loader">
-            <span /><span /><span /><span />
+          <div className="paw-loader" aria-hidden="true">
+            <PawPrint size={28} weight="fill" />
+            <PawPrint size={28} weight="fill" />
+            <PawPrint size={28} weight="fill" />
+            <PawPrint size={28} weight="fill" />
+            <PawPrint size={28} weight="fill" />
           </div>
           <p className="loading-text">Finding your pet…</p>
           {progress && progress.key === 'fetch' ? (

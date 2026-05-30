@@ -14,15 +14,15 @@ describe('projectReducer', () => {
     expect(s2.step).toBe(0)
   })
 
-  it('does not advance past step 3 or rewind below 0', () => {
-    const at3 = { ...initialProject, step: 3 }
-    expect(projectReducer(at3, { type: 'NEXT' }).step).toBe(3)
+  it('does not advance past the final step or rewind below 0', () => {
+    const at2 = { ...initialProject, step: 2 }
+    expect(projectReducer(at2, { type: 'NEXT' }).step).toBe(2)
     expect(projectReducer(initialProject, { type: 'BACK' }).step).toBe(0)
   })
 
   it('adds and removes nicknames', () => {
     const s1 = projectReducer(initialProject, { type: 'ADD_NAME', text: 'Biscuit' })
-    expect(s1.names).toEqual([{ text: 'Biscuit', allowVertical: true }])
+    expect(s1.names).toEqual([{ text: 'Biscuit', allowVertical: true, favorite: false }])
     const s2 = projectReducer(s1, { type: 'REMOVE_NAME', index: 0 })
     expect(s2.names).toEqual([])
   })

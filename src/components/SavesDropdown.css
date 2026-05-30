@@ -147,3 +147,34 @@
 .save-delete:hover {
   background: #faf0ee;
 }
+
+/* On mobile the saves dropdown lives inside the header hamburger menu (itself
+   a popout). Always render the saves inline — a non-clickable label + the
+   list, like a section header. No nested popout. */
+@media (max-width: 720px) {
+  .saves-inline-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .saves-panel {
+    position: static;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-top: 2px;
+  }
+
+  .save-delete {
+    opacity: 1;
+  }
+}

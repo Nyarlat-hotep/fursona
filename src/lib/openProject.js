@@ -18,7 +18,7 @@ export async function hydrateSavedProject(row, onProgress) {
     photoBlob: null,
     photoUrl: null,
     maskBitmap: null,
-    step: 3,
+    step: 2,
   }
 
   if (row.shape_id) {

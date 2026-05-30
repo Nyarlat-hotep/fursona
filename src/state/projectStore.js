@@ -1,5 +1,5 @@
 export const initialProject = {
-  step: 0,           // 0=Upload 1=Extract 2=Names 3=Style+Download
+  step: 0,           // 0=Upload 1=Extract 2=Style+Download (names managed inline on step 2)
   currentProjectId: null,   // id of the saved cloud row this state was opened from
   shapeId: null,            // shape preset id when entered via shape picker (null for photo)
   photoBlob: null,
@@ -23,9 +23,10 @@ export const initialProject = {
   lastExportedAt: null,
 }
 
-const MAX_STEP = 3
+const MAX_STEP = 2
 export const MAX_NAME_LENGTH = 40
-export const MAX_NAMES = 200
+export const MAX_NAMES = 40
+export const MAX_FAVORITES = 3
 
 function revokeIfBlobUrl(url) {
   if (url && url.startsWith('blob:')) {
@@ -80,12 +81,22 @@ export function projectReducer(state, action) {
       const text = String(action.text || '').trim().slice(0, MAX_NAME_LENGTH)
       if (!text) return state
       if (state.names.length >= MAX_NAMES) return state
-      return { ...state, names: [...state.names, { text, allowVertical: true }] }
+      return { ...state, names: [...state.names, { text, allowVertical: true, favorite: false }] }
     }
     case 'REMOVE_NAME': return { ...state, names: state.names.filter((_, i) => i !== action.index) }
     case 'TOGGLE_VERTICAL': return {
       ...state,
       names: state.names.map((n, i) => i === action.index ? { ...n, allowVertical: !n.allowVertical } : n),
+    }
+    case 'TOGGLE_FAVORITE': {
+      const target = state.names[action.index]
+      if (!target) return state
+      // Adding a new favorite when already at cap is a no-op; unfavoriting is always allowed.
+      if (!target.favorite && state.names.filter((n) => n.favorite).length >= MAX_FAVORITES) return state
+      return {
+        ...state,
+        names: state.names.map((n, i) => i === action.index ? { ...n, favorite: !n.favorite } : n),
+      }
     }
     case 'SET_STYLE': return { ...state, style: { ...state.style, ...action.patch } }
     case 'REGENERATE': return { ...state, seed: Math.floor(Math.random() * 2 ** 31) }
