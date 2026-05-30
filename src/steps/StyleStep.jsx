@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk, Star, X, PencilSimpleLine } from '@phosphor-icons/react'
+import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk, Star, X, PencilSimpleLine, DownloadSimple, Printer } from '@phosphor-icons/react'
 import { MAX_NAME_LENGTH, MAX_NAMES, MAX_FAVORITES } from '../state/projectStore'
 import { useAuth } from '../state/useAuth'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -246,6 +246,7 @@ export default function StyleStep({ project, dispatch }) {
   const [signInOpen, setSignInOpen] = useState(false)
   const [saveOpen, setSaveOpen] = useState(false)
   const [donationOpen, setDonationOpen] = useState(false)
+  const [actionMode, setActionMode] = useState('download') // 'download' | 'print'
   const [toast, setToast] = useState(null)
   const [canvasWidth, setCanvasWidth] = useState(780)
   const [namesDrawerOpen, setNamesDrawerOpen] = useState(false)
@@ -296,6 +297,37 @@ export default function StyleStep({ project, dispatch }) {
       setDonationOpen(false)
     } catch (e) {
       setError(`Could not render at ${size}. Try a smaller size. (${e.message})`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function runPrint() {
+    setBusy(true)
+    setError(null)
+    try {
+      const blob = await exportPng(project, size)
+      const url = URL.createObjectURL(blob)
+      // Open a clean window with just the image and trigger print on load.
+      const win = window.open('', '_blank')
+      if (!win) {
+        throw new Error('Pop-up blocked — allow pop-ups for this site to print.')
+      }
+      win.document.write(`<!doctype html><html><head><title>Petprint</title>
+<style>
+  @page { margin: 0.25in; }
+  html, body { margin: 0; padding: 0; }
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+  @media print { body { min-height: auto; } }
+</style></head>
+<body><img src="${url}" onload="setTimeout(() => { window.focus(); window.print(); }, 100)" /></body></html>`)
+      win.document.close()
+      // Revoke later so the new window has time to load the blob URL.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      setDonationOpen(false)
+    } catch (e) {
+      setError(`Could not prepare for printing at ${size}. (${e.message})`)
     } finally {
       setBusy(false)
     }
@@ -565,12 +597,22 @@ export default function StyleStep({ project, dispatch }) {
             </button>
           )}
           <button
-            className="primary"
-            onClick={() => setDonationOpen(true)}
+            className="secondary"
+            onClick={() => { setActionMode('print'); setDonationOpen(true) }}
             disabled={busy}
             type="button"
           >
-            {busy ? 'Rendering…' : `Download PNG (${size})`}
+            <Printer size={16} weight="bold" />
+            <span>Print</span>
+          </button>
+          <button
+            className="primary"
+            onClick={() => { setActionMode('download'); setDonationOpen(true) }}
+            disabled={busy}
+            type="button"
+          >
+            <DownloadSimple size={16} weight="bold" />
+            <span>Download</span>
           </button>
         </div>
       </div>
@@ -595,7 +637,8 @@ export default function StyleStep({ project, dispatch }) {
       <DonationModal
         open={donationOpen}
         busy={busy}
-        onDownload={runDownload}
+        mode={actionMode}
+        onDownload={actionMode === 'print' ? runPrint : runDownload}
         onSkip={() => setDonationOpen(false)}
       />
       <Snackbar message={toast} onDismiss={() => setToast(null)} />

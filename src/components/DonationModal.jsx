@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Heart, DownloadSimple } from '@phosphor-icons/react'
+import { Heart, DownloadSimple, Printer } from '@phosphor-icons/react'
 import './DonationModal.css'
 
 // TODO: replace the PayPal and Buy Me a Coffee handles below with your own.
@@ -11,7 +11,12 @@ const VENMO_WEB = `https://venmo.com/u/${VENMO_HANDLE}`
 const PAYPAL_URL = `https://paypal.me/${PAYPAL_HANDLE}`
 const BMC_URL = `https://buymeacoffee.com/${BMC_HANDLE}`
 
-export default function DonationModal({ open, busy, onDownload, onSkip }) {
+export default function DonationModal({ open, busy, mode = 'download', onDownload, onSkip }) {
+  const isPrint = mode === 'print'
+  const Icon = isPrint ? Printer : DownloadSimple
+  const ctaLabel = busy
+    ? (isPrint ? 'Preparing…' : 'Rendering…')
+    : (isPrint ? 'Print my image' : 'Download my image')
   useEffect(() => {
     if (!open) return
     function onKey(e) {
@@ -78,8 +83,8 @@ export default function DonationModal({ open, busy, onDownload, onSkip }) {
             disabled={busy}
             autoFocus
           >
-            <DownloadSimple size={16} weight="bold" />
-            <span>{busy ? 'Rendering…' : 'Download my image'}</span>
+            <Icon size={16} weight="bold" />
+            <span>{ctaLabel}</span>
           </button>
         </div>
       </div>

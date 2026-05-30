@@ -578,6 +578,9 @@
 }
 
 .style-step .step-footer .primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 10px 24px;
   border-radius: 8px;
   border: 1px solid #2563eb;
