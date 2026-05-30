@@ -31,7 +31,7 @@
   background: #f7faff;
   border: 1px solid #bfd5f5;
   border-radius: 12px;
-  padding: 12px;
+  padding: 12px 12px 0 12px;
   min-height: 0;
 }
 
@@ -208,7 +208,7 @@
   width: 100%;
   max-width: 520px;
   border-radius: 16px 16px 0 0;
-  padding: 20px 16px 20px;
+  padding: 20px 16px 0px 16px;
   max-height: 80vh;
   overflow: hidden;
   display: flex;
