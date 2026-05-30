@@ -248,7 +248,7 @@ export default function StyleStep({ project, dispatch }) {
   const [donationOpen, setDonationOpen] = useState(false)
   const [actionMode, setActionMode] = useState('download') // 'download' | 'print'
   const [toast, setToast] = useState(null)
-  const [canvasWidth, setCanvasWidth] = useState(780)
+  const [canvasBounds, setCanvasBounds] = useState({ width: 780, height: 600 })
   const [namesDrawerOpen, setNamesDrawerOpen] = useState(false)
   const [namesDrawerMounted, setNamesDrawerMounted] = useState(false)
 
@@ -270,7 +270,10 @@ export default function StyleStep({ project, dispatch }) {
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const w = Math.floor(entry.contentRect.width)
-      if (w > 0) setCanvasWidth(w)
+      const h = Math.floor(entry.contentRect.height)
+      if (w > 0 && h > 0) {
+        setCanvasBounds((prev) => (prev.width === w && prev.height === h) ? prev : { width: w, height: h })
+      }
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -308,23 +311,48 @@ export default function StyleStep({ project, dispatch }) {
     try {
       const blob = await exportPng(project, size)
       const url = URL.createObjectURL(blob)
-      // Open a clean window with just the image and trigger print on load.
-      const win = window.open('', '_blank')
-      if (!win) {
-        throw new Error('Pop-up blocked — allow pop-ups for this site to print.')
-      }
-      win.document.write(`<!doctype html><html><head><title>Petprint</title>
+
+      // Hidden iframe approach — no pop-up blockers, prints in-page.
+      // Reuse a stable id so repeat prints don't pile up iframes.
+      let iframe = document.getElementById('petprint-print-frame')
+      if (iframe) iframe.remove()
+      iframe = document.createElement('iframe')
+      iframe.id = 'petprint-print-frame'
+      Object.assign(iframe.style, {
+        position: 'fixed', right: '0', bottom: '0',
+        width: '0', height: '0', border: '0', visibility: 'hidden',
+      })
+      document.body.appendChild(iframe)
+
+      const doc = iframe.contentDocument
+      doc.open()
+      doc.write(`<!doctype html><html><head><title>Petprint</title>
 <style>
   @page { margin: 0.25in; }
   html, body { margin: 0; padding: 0; }
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  body { display: flex; align-items: center; justify-content: center; }
   img { max-width: 100%; max-height: 100vh; object-fit: contain; }
-  @media print { body { min-height: auto; } }
 </style></head>
-<body><img src="${url}" onload="setTimeout(() => { window.focus(); window.print(); }, 100)" /></body></html>`)
-      win.document.close()
-      // Revoke later so the new window has time to load the blob URL.
-      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+<body><img id="petprint-img" src="${url}" /></body></html>`)
+      doc.close()
+
+      const cleanup = () => {
+        URL.revokeObjectURL(url)
+        // Delay removal so the print dialog doesn't tear out from under itself.
+        setTimeout(() => iframe.remove(), 1000)
+      }
+      const triggerPrint = () => {
+        try {
+          iframe.contentWindow.focus()
+          iframe.contentWindow.print()
+        } finally {
+          cleanup()
+        }
+      }
+      const img = doc.getElementById('petprint-img')
+      if (img.complete && img.naturalWidth > 0) triggerPrint()
+      else { img.onload = triggerPrint; img.onerror = cleanup }
+
       setDonationOpen(false)
     } catch (e) {
       setError(`Could not prepare for printing at ${size}. (${e.message})`)
@@ -529,7 +557,7 @@ export default function StyleStep({ project, dispatch }) {
             onRegenerate={() => dispatch({ type: 'REGENERATE' })}
           />
           <div className="preview-canvas-wrap" ref={canvasWrapRef}>
-            <WordCloudCanvas project={project} width={canvasWidth} />
+            <WordCloudCanvas project={project} maxWidth={canvasBounds.width} maxHeight={canvasBounds.height} />
           </div>
           <button
             type="button"

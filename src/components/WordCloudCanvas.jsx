@@ -16,7 +16,10 @@ function useDebouncedNames(names, delay = 350) {
   return debounced
 }
 
-export default function WordCloudCanvas({ project, width }) {
+export default function WordCloudCanvas({ project, width, maxWidth, maxHeight }) {
+  // Back-compat: legacy `width` prop becomes the max width with no height cap.
+  const boundW = maxWidth ?? width ?? 580
+  const boundH = maxHeight ?? Infinity
   const canvasRef = useRef(null)
   // Deferring style/seed lets React coalesce rapid slider drags so the
   // expensive word packer doesn't run on every input event.
@@ -28,17 +31,12 @@ export default function WordCloudCanvas({ project, width }) {
     const canvas = canvasRef.current
     if (!canvas) return
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    // Canvas aspect follows the silhouette bbox so tall/narrow shapes (e.g. a
-    // standing cat) don't leave large empty bands on the sides. Clamp to a
-    // sensible range so extreme aspects don't make the canvas absurdly tall.
-    // When no mask exists yet, default to a comfortable wide aspect so the
-    // empty canvas still fills its column instead of collapsing to 300×150.
     const mw = project.maskBitmap?.width || 0
     const mh = project.maskBitmap?.height || 0
-    const rawAspect = mh > 0 ? mw / mh : 1.4
-    const aspect = Math.max(0.6, Math.min(1.6, rawAspect))
-    const cssW = width
-    const cssH = Math.round(width / aspect)
+    // Canvas fills the whole bound box; the renderer fits the silhouette
+    // inside while preserving its aspect (extra space becomes background).
+    const cssW = Math.floor(boundW)
+    const cssH = Math.floor(Number.isFinite(boundH) ? boundH : boundW / 1.4)
     const renderW = Math.round(cssW * dpr)
     const renderH = Math.round(cssH * dpr)
     if (canvas.width !== renderW) canvas.width = renderW
@@ -85,7 +83,7 @@ export default function WordCloudCanvas({ project, width }) {
       if (!cancelled) console.error('Word cloud render failed:', e)
     })
     return () => { cancelled = true }
-  }, [project.maskBitmap, deferredNames, deferredStyle, deferredSeed, width])
+  }, [project.maskBitmap, deferredNames, deferredStyle, deferredSeed, boundW, boundH])
 
   return <canvas ref={canvasRef} className="wordcloud-canvas" />
 }
